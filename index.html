@@ -302,12 +302,6 @@ button:hover:not(:disabled) {
         </form>
 
         <button class="link-btn" id="toggleMode">Don't have an account? Sign Up</button>
-
-        <div class="nav-buttons" id="navButtons">
-          <button onclick="window.location.href='project-management-tool.html'"><i class="fas fa-project-diagram"></i> Project Management Tool</button>
-          <button onclick="window.location.href='User-Story.html'"><i class="fas fa-book-open"></i> User Story Tool</button>
-          <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
       </div>
     </main>
   </div>
@@ -407,36 +401,51 @@ button:hover:not(:disabled) {
       }
     });
 
-    authForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const confirm = confirmPassword.value;
+  // ✅ Check if user is already logged in
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // Already logged in → redirect
+      window.location.href = "chooser.html";
+    } else {
+      // Not logged in → show login form
+      document.querySelector(".auth-card").style.display = "block";
+    }
+  });
 
-      authMessage.className = '';
-      authMessage.textContent = '';
+  // ✅ Your existing form submit handler
+  authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const confirm = confirmPassword.value;
 
-      authBtn.disabled = true;
-      const originalBtnText = authBtn.innerHTML;
-      authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Please wait...';
+    authMessage.className = '';
+    authMessage.textContent = '';
 
-      try {
-        if (isLogin) {
-          await auth.signInWithEmailAndPassword(email, password);
-          window.location.href = "chooser.html";
-        } else {
-          if (password !== confirm) { showMessage("Passwords do not match."); return; }
-          await auth.createUserWithEmailAndPassword(email, password);
-          window.location.href = "chooser.html";
+    authBtn.disabled = true;
+    const originalBtnText = authBtn.innerHTML;
+    authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Please wait...';
+
+    try {
+      if (isLogin) {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = "chooser.html";
+      } else {
+        if (password !== confirm) { 
+          showMessage("Passwords do not match."); 
+          return; 
         }
-      } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        showMessage(errorMessage);
-      } finally {
-        authBtn.disabled = false;
-        authBtn.innerHTML = originalBtnText;
+        await auth.createUserWithEmailAndPassword(email, password);
+        window.location.href = "chooser.html";
       }
-    });
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      showMessage(errorMessage);
+    } finally {
+      authBtn.disabled = false;
+      authBtn.innerHTML = originalBtnText;
+    }
+  });
 
     auth.onAuthStateChanged(user => {
       const authFormEl = document.getElementById("authForm");
