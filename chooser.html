@@ -88,12 +88,42 @@
   gap:24px;
 }
 
-    .tile{
-      aspect-ratio:1/1; border-radius:18px; background:#fff; border:1px solid #e5e7eb;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:10px; cursor:pointer; text-align:center; transition:transform .2s, box-shadow .2s, border-color .2s;
-      box-shadow:0 1px 0 rgba(2,8,23,.02);
-    }
+/* your existing tile rule + this one line */
+.tile{
+  aspect-ratio:1/1;
+  border-radius:18px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  cursor:pointer;
+  text-align:center;
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+  box-shadow:0 1px 0 rgba(2,8,23,.02);
+  position: relative;           /* ← ADD THIS */
+}
+
+/* badge (unchanged) */
+.ai-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(90deg, #a855f7, #ec4899); /* purple → pink */
+  color: #fff;
+  font-size: 12px;        /* bigger font */
+  font-weight: 600;
+  padding: 4px 10px;      /* bigger pill */
+  border-radius: 999px;   /* fully rounded */
+  text-transform: uppercase;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+
     .tile i{font-size:30px}
     .tile span{font-weight:700}
     .tile.pm{border-top:5px solid #2563eb}
@@ -219,18 +249,20 @@
   <button class="logout" id="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
 
   <div class="panel">
-    <h2 class="title">Welcome</h2>
-    <p class="sub">Choose a tool to continue</p>
+<h2 class="title" id="welcomeTitle">Welcome</h2>
+<p class="sub">Choose a tool to continue</p>
+
 
 <div class="grid">
   <!-- Project Management -->
-  <div class="tile pm" onclick="window.open('project-management-tool.html','_blank')">
-    <i class="fa-solid fa-diagram-project" style="color:#2563eb"></i>
-    <span>Project Management</span>
-    <div class="info" data-tip="Plan, track, and manage your projects effectively with milestones and tasks.">
-      <i class="fa-solid fa-circle-info"></i>
-    </div>
+<div class="tile pm" onclick="window.open('project-management-tool.html','_blank')">
+  <span class="ai-badge">AI</span>
+  <i class="fa-solid fa-diagram-project" style="color:#2563eb"></i>
+  <span>Project Management</span>
+  <div class="info" data-tip="Plan, track, and manage your projects effectively with milestones and tasks.">
+    <i class="fa-solid fa-circle-info"></i>
   </div>
+</div>
 
   <!-- User Story -->
   <div class="tile us" onclick="window.open('User-Story.html','_blank')">
@@ -242,31 +274,36 @@
   </div>
 
   <!-- SWOT Analysis -->
-  <div class="tile swot" onclick="window.open('SWOT.html','_blank')">
-    <i class="fa-solid fa-chart-pie" style="color:#16a34a"></i>
-    <span>SWOT Analysis</span>
-    <div class="info" data-tip="Generate strengths, weaknesses, opportunities, and threats with AI assistance.">
-      <i class="fa-solid fa-circle-info"></i>
-    </div>
+<div class="tile swot" onclick="window.open('SWOT.html','_blank')">
+  <span class="ai-badge">AI</span>
+  <i class="fa-solid fa-chart-pie" style="color:#16a34a"></i>
+  <span>SWOT Analysis</span>
+  <div class="info" data-tip="Generate strengths, weaknesses, opportunities, and threats with AI assistance.">
+    <i class="fa-solid fa-circle-info"></i>
   </div>
+</div>
 
   <!-- BRD Generator -->
-  <div class="tile brd" onclick="window.open('BRD-Generator.html','_blank')">
-    <i class="fa-solid fa-file-contract" style="color:#9333ea"></i>
-    <span>BRD Generator</span>
-    <div class="info" data-tip="Automatically create Business Requirement Documents with AI support.">
-      <i class="fa-solid fa-circle-info"></i>
-    </div>
+<div class="tile brd" onclick="window.open('BRD-Generator.html','_blank')">
+  <span class="ai-badge">AI</span>
+  <i class="fa-solid fa-file-contract" style="color:#9333ea"></i>
+  <span>BRD Generator</span>
+  <div class="info" data-tip="Automatically create Business Requirement Documents with AI support.">
+    <i class="fa-solid fa-circle-info"></i>
   </div>
+</div>
 
   <!-- RCA Generator -->
-  <div class="tile rca" onclick="window.open('RCA-Generator.html','_blank')">
-    <i class="fa-solid fa-magnifying-glass-chart" style="color:#e11d48"></i>
-    <span>RCA Generator</span>
-    <div class="info" data-tip="Perform Root Cause Analysis faster with AI-powered insights.">
-      <i class="fa-solid fa-circle-info"></i>
-    </div>
+<div class="tile rca" onclick="window.open('RCA-Generator.html','_blank')">
+  <span class="ai-badge">AI</span>
+  <i class="fa-solid fa-magnifying-glass-chart" style="color:#e11d48"></i>
+  <span>RCA Generator</span>
+  <div class="info" data-tip="Perform Root Cause Analysis faster with AI-powered insights.">
+    <i class="fa-solid fa-circle-info"></i>
   </div>
+</div>
+
+  <!-- Diagram -->
 <div class="tile diagram" onclick="window.open('Diagram.html','_blank')">
   <!-- Icon changed to 'fa-sitemap' for diagram/structure feel -->
   <i class="fa-solid fa-sitemap" style="color:#db7d08"></i>
@@ -302,9 +339,17 @@
     const auth = firebase.auth();
 
     // Guard route: if not logged in → back to login
-    auth.onAuthStateChanged(user => {
-      if (!user) window.location.href = 'index.html';
-    });
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = 'index.html';
+  } else {
+    const welcomeTitle = document.getElementById("welcomeTitle");
+    if (welcomeTitle && user.email) {
+      welcomeTitle.textContent = `Welcome (${user.email})`;
+    }
+  }
+});
+
 
     // Logout
     document.getElementById('logout').addEventListener('click', async () => {
