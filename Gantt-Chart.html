@@ -938,6 +938,23 @@ gantt.config.redo = true;
 }
 #switchAppsBtn:hover{ background:#4338ca; }
 
+.badge-blink {
+  margin-left:.5rem;
+  padding:.1rem .4rem;
+  font-size:.7rem;
+  font-weight:600;
+  background:#ef4444;   /* red */
+  color:#fff;
+  border-radius:.5rem;
+  animation: blinkBadge 1s infinite;
+}
+
+@keyframes blinkBadge {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+
 
 </style>
 </head>
@@ -959,7 +976,8 @@ gantt.config.redo = true;
       <div id="brand-subtitle">From Ideas to Execution with Intelligent Gantt Planning</div>
     </div>
 <div class="help-badge">
-  <i class="ri-information-line"></i> Hover to see instructions
+  <i class="ri-information-line"></i> Need Help?
+  <span class="badge-blink">NEW</span>
   <div class="help-popover" role="dialog" aria-label="Gantt tips">
     <div class="hp-head">
       <span class="hp-icon"><i class="ri-lightbulb-flash-line"></i></span>
@@ -991,6 +1009,10 @@ gantt.config.redo = true;
         <li>
           <span class="dot"></span>
           <div class="txt"><b>Click the <em>"New Project"</em> button</b> to start a new project.</div>
+        </li>
+		   <li>
+          <span class="dot"></span>
+          <div class="txt"><b>To make a copy <em>"of task"</em> open Task</b> and click on duplicate.</div>
         </li>
       </ul>
     </div>
@@ -1047,7 +1069,7 @@ gantt.config.redo = true;
       <button class="tb-btn btn-export" onclick="exportPNG()"><i class="ri-image-line"></i> PNG</button>
       <button class="tb-btn btn-export" onclick="exportPDF()"><i class="ri-file-pdf-line"></i> PDF</button>
       <button class="tb-btn btn-export" onclick="exportXLSX()"><i class="ri-file-excel-line"></i> XLSX</button>
-      <button class="tb-btn btn-export" onclick="exportJSON()"><i class="ri-code-line"></i> JSON</button>
+      <button class="tb-btn btn-export" onclick="exportJSON()"><i class="ri-code-line"></i> Export JSON</button>
       <label class="tb-btn btn-export">
         <i class="ri-upload-2-line"></i> Import JSON
         <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none;">
@@ -1192,6 +1214,7 @@ gantt.config.redo = true;
     <div class="actions">
       <button class="tb-btn ghost" onclick="closeModal()">Cancel</button>
       <button class="tb-btn" onclick="saveModal()">Save</button>
+	   <button onclick="handleDuplicateFromModal()">Duplicate</button>
     </div>
   </div>
 </div>
@@ -2220,7 +2243,6 @@ function makeKanbanCard(t, isParent){
 
 let currentEditingTaskId = null;
 
-
 // ---------- Open details (uses your existing modal) ----------
 function openTaskDetails(id) {
   const board = document.getElementById("boardView");
@@ -2229,8 +2251,7 @@ function openTaskDetails(id) {
   const t = gantt.getTask(id);
   if (!t) return;
 
-  // 🔑 Tell saveModal which task is being edited
-  window.currentTaskId = id;
+  modalTaskId = id; // <-- IMPORTANT
 
   document.getElementById("f_text").value = t.text || "";
   document.getElementById("f_assigned").value = t.assigned || "";
@@ -2247,6 +2268,7 @@ function openTaskDetails(id) {
   document.getElementById("modalBackdrop").style.display="block";
   document.getElementById("modal").style.display="flex";
 }
+
 
 
 
@@ -2723,6 +2745,67 @@ document.addEventListener("keydown", e => {
     newProjectFromScratch();
   }
 });
+
+
+function handleDuplicateFromModal() {
+  if (!modalTaskId) {
+    alert("No task selected to duplicate");
+    return;
+  }
+  const parentId = gantt.getParent(modalTaskId) || 0;
+  duplicateTask(modalTaskId, parentId);
+  closeModal();
+}
+
+document.getElementById("duplicateTaskBtn")?.addEventListener("click", () => {
+  const sel = gantt.getSelectedId() || modalTaskId;
+  if (!sel) {
+    alert("Please select a task (or open it) to duplicate");
+    return;
+  }
+  duplicateTask(sel, gantt.getParent(sel) || 0);
+});
+
+
+function duplicateTask(taskId, newParentId = 0) {
+  const src = gantt.getTask(taskId);
+  if (!src) return;
+
+  const pick = t => ({
+    text: t.text,
+    start_date: t.start_date ? new Date(t.start_date) : null,
+    end_date: t.end_date ? new Date(t.end_date) : null,
+    progress: t.progress || 0,
+    status: t.status || "Not Started",
+    priority: t.priority || "Medium",
+    type: t.type || "",
+    assigned: t.assigned || "",
+    color: t.color || undefined
+  });
+
+  const newId = Date.now() + Math.floor(Math.random() * 1000);
+  const base = pick(src);
+  const newTask = {
+    id: newId,
+    parent: newParentId,
+    ...base,
+    text: (src.text || "Task") + " (Copy)"
+  };
+
+  gantt.addTask(newTask, newParentId);
+
+  // recursively clone children
+  (gantt.getChildren(taskId) || []).forEach(childId => {
+    duplicateTask(childId, newId);
+  });
+
+  gantt.render();
+  populateBoard?.();
+
+  // ✅ return INSIDE the function, before the closing brace
+  return newId;
+}
+
 
 
 
