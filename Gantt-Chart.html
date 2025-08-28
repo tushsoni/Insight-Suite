@@ -18,7 +18,7 @@
 <style>
 :root {
   --btn: #4f46e5;
-  --btn-h: #4338ca;
+  --btn-h: #008000;
   --danger: #ef4444;
   --chip: #eef2f7;
   --grid: #f9fafb;
@@ -28,15 +28,44 @@
   --bg-main: #fbfdff;
   --shadow-soft: 0 4px 12px rgba(0,0,0,0.06);
   --shadow-strong: 0 16px 40px rgba(2,6,23,.18);
-    --btn-details: #4f46e5;   /* indigo */
-  --btn-details-h: #4338ca;
+    --btn-details: #008000;   /* indigo */
+  --btn-details-h: #008000;
 
   --btn-filter:  #0ea5e9;   /* sky */
   --btn-filter-h:#0284c7;
 
   --btn-export:  #334155;   /* slate */
   --btn-export-h:#1f2937;
+
+
+/* Style parent (summary) tasks in the grid */
+.gantt_task_parent .gantt_tree_content {
+  font-style: normal !important;   /* remove italics */
+  font-weight: 600;                /* make bold */
+  color: #374151;                  /* dark gray, softer than black */
 }
+
+/* Optionally, style child tasks slightly lighter for contrast */
+.gantt_task_row .gantt_tree_content {
+  font-weight: 400;
+  color: #111827;
+}
+
+/* Bold, non-italic parent rows in the GRID */
+.gantt_grid_data .is-parent-row .gantt_tree_content{
+  font-style: normal;
+  font-weight: 600;
+  color: #374151;
+}
+
+
+.gantt_tree_content{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 
 
 /* Base compact button remains from your .tb-btn; tweak size */
@@ -195,6 +224,24 @@ html, body {
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
   transition: 0.15s transform, 0.15s background;
 }
+
+.tb-btn-duplicate {
+  background: green;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  transition: 0.15s transform, 0.15s background;
+}
+
+
 .tb-btn.secondary {
   background: #f3f4f6;
   color: #374151;
@@ -274,34 +321,77 @@ html, body {
 }
 
 /* ---------------- Context Menu ---------------- */
-.ctx {
-  position: absolute;
-  z-index: 9999;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  min-width: 200px;
-  box-shadow: var(--shadow-strong);
-  overflow: hidden;
-  display: none;
+.ctx{
+  position:absolute;
+  display:none;
+  min-width:200px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
+  padding:6px 0;
+  overflow:hidden;           /* 👈 clip hover backgrounds */
 }
+
 .ctx button {
+  all: unset; /* reset default button styles */
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 14px;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  font-weight: 600;
+  padding: 10px 16px;
   font-size: 14px;
   color: #374151;
-  transition: background 0.15s;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin:2px 6px; border-radius:8px;
 }
-.ctx button:hover { background: #f3f4f6; }
-.ctx hr { border: 0; border-top: 1px solid #eef2f7; margin: 4px 0; }
+
+.ctx button i {
+  font-size: 16px;
+  color: #6b7280;
+  transition: color 0.15s ease;
+}
+
+.ctx button:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.ctx button:hover i {
+  color: #111827;
+}
+
+.ctx hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 6px 0;
+}
+
+.ctx button.danger {
+  color: #dc2626;
+}
+
+.ctx button.danger i {
+  color: #dc2626;
+}
+
+.ctx button.danger:hover {
+  background: #fee2e2;
+}
+
+
+.ctx button:last-of-type{
+  border-radius:0 0 12px 12px;  /* matches .ctx radius */
+}
+
+
+@keyframes ctxFadeIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
 
 /* ---------------- Modal ---------------- */
 .modal-backdrop {
@@ -602,7 +692,7 @@ gantt.config.redo = true;
   font-weight: 600;
   border-radius: 999px;              /* full rounded pill */
   background: #e0e7ff;               /* soft indigo/blue background */
-  color: #4338ca;                    /* indigo text */
+  color: #008000;                    /* indigo text */
   display: inline-block;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06); /* soft shadow */
 }
@@ -631,7 +721,7 @@ gantt.config.redo = true;
 }
 
 #switchAppsBtn:hover {
-  background: #4338ca;
+  background: #008000;
   transform: translateY(-1px);
 }
 #brandbar img{ height:56px;
@@ -936,7 +1026,7 @@ gantt.config.redo = true;
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
   z-index: 12;
 }
-#switchAppsBtn:hover{ background:#4338ca; }
+#switchAppsBtn:hover{ background:#008000; }
 
 .badge-blink {
   margin-left:.5rem;
@@ -988,7 +1078,11 @@ gantt.config.redo = true;
       <ul class="hp-list">
         <li>
           <span class="dot"></span>
-          <div class="txt"><b>Double-click a task</b> to quickly edit its details.</div>
+          <div class="txt"><b>Double-click a Task, Subtask, Summary, or Milestone,</b> to quickly edit its details.</div>
+        </li>
+		<li>
+          <span class="dot"></span>
+          <div class="txt"><b>Right-click a Task, Subtask, Summary, or Milestone,</b> to Edit, Add, Duplicate or Delete.</div>
         </li>
         <li>
           <span class="dot"></span>
@@ -1012,7 +1106,7 @@ gantt.config.redo = true;
         </li>
 		   <li>
           <span class="dot"></span>
-          <div class="txt"><b>To make a copy <em>"of task"</em> open Task</b> and click on duplicate.</div>
+          <div class="txt"><b>To duplicate a Task, Subtask, Summary, or Milestone,</b> open it and click <em>Duplicate</em>, or simply right-click and choose <em>Duplicate.</div>
         </li>
       </ul>
     </div>
@@ -1037,11 +1131,11 @@ gantt.config.redo = true;
     <button class="tb-btn btn-details" onclick="newProjectFromScratch()">
       <i class="ri-file-2-line"></i> New Project
     </button>
+	<button class="tb-btn btn-details" onclick="addSummary()">
+      <i class="ri-folder-2-line"></i> Summary
+    </button>
     <button class="tb-btn btn-details" onclick="addTask()">
       <i class="ri-task-line"></i> Task
-    </button>
-    <button class="tb-btn btn-details" onclick="addSummary()">
-      <i class="ri-folder-2-line"></i> Summary
     </button>
     <button class="tb-btn btn-details" onclick="addMilestone()">
       <i class="ri-flag-line"></i> Milestone
@@ -1135,19 +1229,23 @@ gantt.config.redo = true;
     <i class="ri-pencil-fill"></i> Edit
   </button>
   <button onclick="ctxAction('addTask')">
-    <i class="ri-add-line"></i> Add task
+    <i class="ri-add-line"></i> Add Task
   </button>
   <button onclick="ctxAction('addSubtask')">
-    <i class="ri-add-line"></i> Add subtask
+    <i class="ri-add-line"></i> Add Subtask
   </button>
   <button onclick="ctxAction('addMilestone')">
-    <i class="ri-star-fill"></i> Add milestone
+    <i class="ri-star-fill"></i> Add Milestone
   </button>
-  <hr/>
-  <button onclick="ctxAction('delete')">
+  <button onclick="ctxAction('duplicateTask')">
+    <i class="ri-file-copy-line"></i> Duplicate
+  </button>
+  <hr />
+  <button class="danger" onclick="ctxAction('delete')">
     <i class="ri-delete-bin-line"></i> Delete
   </button>
 </div>
+
 
 <div class="modal-backdrop" id="modalBackdrop"></div>
 <div class="modal" id="modal">
@@ -1214,7 +1312,7 @@ gantt.config.redo = true;
     <div class="actions">
       <button class="tb-btn ghost" onclick="closeModal()">Cancel</button>
       <button class="tb-btn" onclick="saveModal()">Save</button>
-	   <button onclick="handleDuplicateFromModal()">Duplicate</button>
+	   <button class="tb-btn-duplicate" onclick="handleDuplicateFromModal()">Duplicate</button>
     </div>
   </div>
 </div>
@@ -1371,20 +1469,16 @@ gantt.config.columns = [
       return `<input type="color" value="${color}" onchange="onColorChange(${t.id}, this.value)" />`;
     }
   },
-{ 
-  name:"delete", label:"", width:50, align:"center",
-  template: t => {
-    return `
-      <button class="delete-btn" onclick="deleteTask(${t.id})" title="Delete Task">
-        <svg xmlns="http://www.w3.org/2000/svg" 
-             viewBox="0 0 24 24" 
-             fill="red" width="18" height="18">
-          <path d="M3 6h18v2H3V6zm2 3h14v12a2 2 0 0 1-2 2H7a2 
-                   2 0 0 1-2-2V9zm5 3v6h2v-6H10zm4 0v6h2v-6h-2zM9 
-                   4V2h6v2h5v2H4V4h5z"/>
-        </svg>
-      </button>`;
-  }
+// Column template (pass the click event too)
+{
+  name: "delete", label: "", width: 50, align: "center",
+  template: t => `
+    <button class="delete-btn" onclick="deleteTask(${t.id}, event)" title="Delete Task">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+           width="18" height="18" fill="currentColor">
+        <path d="M3 6h18v2H3V6zm2 3h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9zm5 3v6h2v-6H10zm4 0v6h2v-6h-2zM9 4V2h6v2h5v2H4V4h5z"/>
+      </svg>
+    </button>`
 }
 ];
 
@@ -1599,15 +1693,43 @@ gantt.attachEvent("onContextMenu", function(taskId, linkId, event){
   return true;
 });
 document.addEventListener("click", ()=> ctx.style.display="none");
-function ctxAction(action){
-  if(!ctxTaskId) return;
-  if(action==="edit") openModal(gantt.getTask(ctxTaskId));
-  if(action==="addTask") addTask();
-  if(action==="addSubtask") addSubtask(ctxTaskId);
-  if(action==="addMilestone") addMilestone(ctxTaskId);
-  if(action==="delete") deleteTask(ctxTaskId);
-  ctx.style.display="none";
+function ctxAction(action) {
+  if (!ctxTaskId) return;
+
+  if (action === "edit") {
+    openModal(gantt.getTask(ctxTaskId));
+  }
+
+  if (action === "addTask") {
+    addTask();
+  }
+
+  if (action === "addSubtask") {
+    addSubtask(ctxTaskId);
+  }
+
+  if (action === "addMilestone") {
+    addMilestone(ctxTaskId);
+  }
+
+  if (action === "duplicateTask") {
+    const parentId = gantt.getParent(ctxTaskId) || 0;
+    const newId = duplicateTask(ctxTaskId, parentId);
+
+    // Optional: select and scroll to the new duplicate
+    if (newId) {
+      gantt.selectTask(newId);
+      gantt.showTask(newId);
+    }
+  }
+
+  if (action === "delete") {
+    deleteTask(ctxTaskId);
+  }
+
+  ctx.style.display = "none";
 }
+
 
 /* ---------- Modal (Add/Edit) ---------- */
 const modal = document.getElementById('modal');
@@ -1758,9 +1880,6 @@ const seed = {
     {id:5, text:"Backend", type:"project", start_date:"2025-09-01", end_date:"2025-09-25", open:true, status:"Not Started", priority:"Medium", color:"#f44336"},
     {id:6, text:"API Layer", parent:5, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
     {id:7, text:"DB Schema", parent:5, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"},
-    {id:8, text:"UI Polish", start_date:"2025-08-27", end_date:"2025-09-01", status:"Not Started", priority:"Medium", assigned:"UI Dev", color:"#607d8b"},
-	{id:9, text:"Login Page", parent:8, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
-    {id:10, text:"Sign Up Page", parent:8, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"}
   ],
   links:[
     {id:1, source:2, target:3, type:"0"},
@@ -2805,6 +2924,40 @@ function duplicateTask(taskId, newParentId = 0) {
   // ✅ return INSIDE the function, before the closing brace
   return newId;
 }
+
+function deleteTask(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+
+  // ✅ confirm first
+  const task = gantt.isTaskExists(id) ? gantt.getTask(id) : null;
+  const name = task ? `"${task.text}"` : "this task";
+
+  if (!confirm(`Are you sure you want to delete ${name}? This will also remove its subtasks.`)) {
+    return; // cancel delete
+  }
+
+  if (!gantt.isTaskExists(id)) return;
+
+  const parentId = gantt.getParent(id);
+  gantt.deleteTask(id);
+
+  if (gantt.isTaskExists(parentId)) {
+    gantt.selectTask(parentId);
+    gantt.showTask(parentId);
+  } else {
+    gantt.clearSelection?.();
+  }
+
+  if (typeof populateBoard === "function") populateBoard();
+  window.ctxTaskId = null;
+  if (typeof modalTaskId !== "undefined" && modalTaskId === id) closeModal();
+}
+
+// put near your other templates/config
+gantt.templates.grid_row_class = function(start, end, task){
+  // Top-level tasks (level 0) = bold
+  return (task.$level === 0) ? "is-top-row" : "is-sub-row";
+};
 
 
 
