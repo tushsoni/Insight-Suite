@@ -978,7 +978,7 @@ gantt.config.redo = true;
         </li>
         <li>
           <span class="dot"></span>
-          <div class="txt"><b>Click the <em>Board</em> button</b> to switch to the board view.</div>
+          <div class="txt"><b>Click the <em>"Board"</em> button</b> to switch to the board view.</div>
         </li>
         <li>
           <span class="dot"></span>
@@ -987,6 +987,10 @@ gantt.config.redo = true;
         <li>
           <span class="dot"></span>
           <div class="txt"><b>Import the same JSON</b> anytime to seamlessly resume your work.</div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Click the <em>"New Project"</em> button</b> to start a new project.</div>
         </li>
       </ul>
     </div>
@@ -1009,7 +1013,7 @@ gantt.config.redo = true;
   <div class="group-title">Create</div>
   <div class="group-row">
     <button class="tb-btn btn-details" onclick="newProjectFromScratch()">
-      <i class="ri-file-2-line"></i> New
+      <i class="ri-file-2-line"></i> New Project
     </button>
     <button class="tb-btn btn-details" onclick="addTask()">
       <i class="ri-task-line"></i> Task
@@ -1724,14 +1728,16 @@ function saveModal() {
 /* ---------- Seed data ---------- */
 const seed = {
   data:[
-    {id:1, text:"AI Forecast Verbiage change", type:"project", start_date:"2025-08-19", end_date:"2025-09-08", open:true, status:"In Progress", priority:"High", color:"#4caf50"},
+    {id:1, text:"Mobile Number Authentication", type:"project", start_date:"2025-08-19", end_date:"2025-09-08", open:true, status:"In Progress", priority:"High", color:"#4caf50"},
     {id:2, text:"QA", parent:1, start_date:"2025-08-19", end_date:"2025-08-24", status:"In Progress", priority:"Medium", assigned:"QA Team", progress:0.5, color:"#2196f3"},
     {id:3, text:"Prod Deployment", parent:1, start_date:"2025-08-25", end_date:"2025-09-01", status:"Not Started", priority:"High", assigned:"DevOps", color:"#ff9800"},
     {id:4, text:"Stabilization", parent:1, start_date:"2025-09-01", end_date:"2025-09-08", status:"Not Started", priority:"Medium", assigned:"Team", color:"#9c27b0"},
     {id:5, text:"Backend", type:"project", start_date:"2025-09-01", end_date:"2025-09-25", open:true, status:"Not Started", priority:"Medium", color:"#f44336"},
     {id:6, text:"API Layer", parent:5, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
     {id:7, text:"DB Schema", parent:5, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"},
-    {id:8, text:"UI Polish", start_date:"2025-08-27", end_date:"2025-09-01", status:"Not Started", priority:"Medium", assigned:"UI Dev", color:"#607d8b"}
+    {id:8, text:"UI Polish", start_date:"2025-08-27", end_date:"2025-09-01", status:"Not Started", priority:"Medium", assigned:"UI Dev", color:"#607d8b"},
+	{id:9, text:"Login Page", parent:8, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
+    {id:10, text:"Sign Up Page", parent:8, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"}
   ],
   links:[
     {id:1, source:2, target:3, type:"0"},
