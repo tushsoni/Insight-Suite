@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Choose an App</title>
+  <title>Insight Suite - Choose an App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root{
@@ -132,6 +132,9 @@
 .tile.brd  {border-top:5px solid #8b5cf6;}  /* Purple */
 .tile.rca  {border-top:5px solid #ef4444;}  /* Red */
 .tile.diagram  {border-top:5px solid #db7d08;}  /* Red */
+.tile.gantt {
+  border-top: 4px solid #0d9488;  /* teal top line for Gantt Chart */
+}
     .tile:hover{
   transform:translateY(-6px); 
   box-shadow:0 18px 34px rgba(2,8,23,.12); 
@@ -312,6 +315,16 @@
     <i class="fa-solid fa-circle-info"></i>
   </div>
 </div>
+
+<!-- Gantt Chart -->
+<div class="tile gantt" onclick="window.open('Gantt-Chart.html','_blank')">
+  <i class="fa-solid fa-chart-gantt" style="color:#0d9488"></i>
+  <span>Gantt Chart</span>
+  <div class="info" data-tip="Plan, schedule, and visualize project timelines with Gantt charts.">
+    <i class="fa-solid fa-circle-info"></i>
+  </div>
+</div>
+
 
 </div>
 
