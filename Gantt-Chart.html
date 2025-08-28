@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Gantt Chart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.css" rel="stylesheet" />
+<script src="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+<script src="https://export.dhtmlx.com/gantt/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+<style>
+:root {
+  --btn: #4f46e5;
+  --btn-h: #4338ca;
+  --danger: #ef4444;
+  --chip: #eef2f7;
+  --grid: #f9fafb;
+  --border: #e5e7eb;
+  --light-text: #6b7280;
+  --dark-text: #1f2937;
+  --bg-main: #fbfdff;
+  --shadow-soft: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-strong: 0 16px 40px rgba(2,6,23,.18);
+    --btn-details: #4f46e5;   /* indigo */
+  --btn-details-h: #4338ca;
+
+  --btn-filter:  #0ea5e9;   /* sky */
+  --btn-filter-h:#0284c7;
+
+  --btn-export:  #334155;   /* slate */
+  --btn-export-h:#1f2937;
+}
+
+
+/* Base compact button remains from your .tb-btn; tweak size */
+.bar-categories .tb-btn{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:13px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+
+/* Details buttons (green) */
+.btn-details{
+  background: var(--btn-details);
+  color:#fff;
+}
+.btn-details:hover{ background: var(--btn-details-h); }
+
+/* Filter buttons (blue) */
+.btn-filter{
+  background: var(--btn-filter);
+  color:#072a3a;
+  border: 1px solid rgba(2,132,199,.25);
+}
+.btn-filter:hover{ background: var(--btn-filter-h); color:#e6f6ff; }
+
+/* Export/Import buttons (slate) */
+.btn-export{
+  background: var(--btn-export);
+  color:#eef2f7;
+  border: 1px solid rgba(15,23,42,.2);
+}
+.btn-export:hover{ background: var(--btn-export-h); }
+
+/* Make label[type=file] look identical to buttons */
+.btn-export input[type="file"]{ display:none; }
+
+/* Responsive niceties */
+@media (max-width: 1100px){
+  .group-project{ order: 4; width: 100%; }
+  .group-project .group-row{ justify-content:flex-start; }
+}
+@media (max-width: 720px){
+  .bar-categories{ gap:14px; }
+  .bar-categories .tb-btn{ font-size:12.5px; padding:6px 9px; }
+  .group-project #projectName{ width:100%; }
+}
+
+#main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* ✅ contain children */
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: var(--bg-main);
+  color: var(--dark-text);
+}
+
+#gantt_here {
+  width: 100%;
+  height: calc(100% - 130px);
+}
+
+/* ---------------- Status badges ---------------- */
+.badge-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: capitalize;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.badge-notstarted { background: #e5e7eb; color:#111827; }
+.badge-progress   { background: #dbeafe; color:#1d4ed8; }
+.badge-completed  { background: #dcfce7; color:#15803d; }
+.badge-hold       { background: #fef3c7; color:#b45309; }
+
+/* ---------------- Priority badges ---------------- */
+.badge-priority {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.badge-low    { background: #e0f2fe; color:#0369a1; }
+.badge-medium { background: #fef9c3; color:#92400e; }
+.badge-high   { background: #fee2e2; color:#b91c1c; }
+
+/* ---------------- Navbar + Toolbar ---------------- */
+#brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+}
+#brand-container img {
+  height: 42px;
+  object-fit: contain;
+}
+#brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+#brand-title { font-size: 20px; font-weight: 700; color: #1e293b; }
+#brand-subtitle { font-size: 13px; font-weight: 500; color: var(--light-text); }
+
+
+.kanban-col.todo    { border-top: 6px solid #3b82f6; }   /* blue */
+.kanban-col.progress{ border-top: 6px solid #f59e0b; }   /* orange */
+.kanban-col.completed{ border-top: 6px solid #10b981; }  /* green */
+.kanban-col.onhold { border-top: 6px solid #8b5cf6; }    /* purple */
+
+.kanban-card.high   { border-left: 5px solid #ef4444; }
+.kanban-card.medium { border-left: 5px solid #f59e0b; }
+.kanban-card.low    { border-left: 5px solid #10b981; }
+
+
+#toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+.title {
+  font-weight: 800;
+  margin-right: 8px;
+}
+.tb-btn {
+  background: var(--btn);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  transition: 0.15s transform, 0.15s background;
+}
+.tb-btn.secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+.tb-btn.ghost {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+.tb-btn.danger { background: var(--danger); }
+.tb-btn:hover { background: var(--btn-h); transform: translateY(-1px); }
+.tb-btn.secondary:hover { background: #e2e8f0; }
+.tb-btn.ghost:hover { background: #f9fafb; }
+.tb-btn.danger:hover { filter: brightness(.95); }
+
+.chip {
+  background: var(--chip);
+  color: var(--dark-text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ---------------- Grid & Timeline ---------------- */
+.gantt_grid_head_cell {
+  background: var(--grid);
+  font-weight: 700;
+  border-right: 1px solid var(--border);
+  color: var(--dark-text);
+}
+.gantt_row, .gantt_task_row { font-size: 13px; color: var(--dark-text); }
+.gantt_task_cell {
+  border-right: 1px solid #f1f5f9;
+  background: #fff;
+}
+.gantt_scale_cell { font-weight: 700; }
+.gantt_task_line, .gantt_link_line { border-radius: 8px; }
+
+/* Task Bar Colors */
+.gantt_task_line { opacity: .95; }
+.gantt_task_blue .gantt_task_bar {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+.gantt_task_green .gantt_task_bar {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+.gantt_task_orange .gantt_task_bar {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.gantt_task_gray .gantt_task_bar {
+  background: #94a3b8;
+  border-color: #94a3b8;
+}
+.gantt_task_progress {
+  background: rgba(255,255,255,0.3);
+  border-radius: 6px;
+}
+
+/* Resizer */
+.gantt_resizer {
+  background: #e5e7eb !important;
+  cursor: col-resize;
+}
+.gantt_resizer:hover { background: #d1d5db !important; }
+.gantt_resizer:after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 25%;
+  width: 3px; height: 50%;
+  background: #cbd5e1;
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+/* ---------------- Context Menu ---------------- */
+.ctx {
+  position: absolute;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  min-width: 200px;
+  box-shadow: var(--shadow-strong);
+  overflow: hidden;
+  display: none;
+}
+.ctx button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  transition: background 0.15s;
+}
+.ctx button:hover { background: #f3f4f6; }
+.ctx hr { border: 0; border-top: 1px solid #eef2f7; margin: 4px 0; }
+
+/* ---------------- Modal ---------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,.35);
+  backdrop-filter: blur(3px);
+  display: none;
+  z-index: 9998;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal > .card {
+  width: 720px;
+  max-width: 95vw;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(2,6,23,.25);
+  overflow: hidden;
+}
+.card .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+}
+.card .body { padding: 18px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--dark-text); }
+.input, select, .input[type="date"] {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+.input:focus, select:focus {
+  border-color: var(--btn);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+.modal .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  background: #f9fafb;
+}
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 16px;
+}
+.delete-btn:hover { color: #b91c1c; }
+
+/* ---------------- Single-line Subtasks ---------------- */
+.singleline .gantt_task_line.is-child { display: none !important; }
+.agg-host { position: relative; width: 100%; height: 100%; }
+.agg-layer { position: absolute; inset: 0; pointer-events: none; }
+.child-seg {
+  position: absolute;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  opacity: .95;
+}
+.child-blue { background: #3b82f6; }
+.child-green { background: #22c55e; }
+.child-orange { background: #f59e0b; }
+.child-gray { background: #64748b; }
+
+/* ---------------- Undo/Redo ---------------- */
+gantt.plugins({ undo: true });
+gantt.config.undo = true;
+gantt.config.redo = true;
+
+
+
+/* ---------------- Board ---------------- */
+
+/* Board container */
+#boardView {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  padding: 20px;
+  height: calc(100% - 60px);
+  background: #f1f5f9;
+  overflow-x: auto;
+  font-family: "Segoe UI", sans-serif;
+  scroll-behavior: smooth;
+}
+
+#boardView::-webkit-scrollbar {
+  height: 8px;
+}
+#boardView::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+/* Each column */
+.kanban-col {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-top: 6px solid #3b82f6; /* default accent */
+}
+
+#col-notstarted { border-top-color: #3b82f6; }  /* Blue */
+#col-progress   { border-top-color: #f59e0b; }  /* Orange */
+#col-completed  { border-top-color: #10b981; }  /* Green */
+#col-hold       { border-top-color: #8b5cf6; }  /* Purple */
+
+/* Column titles */
+.kanban-col h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Card style */
+.kanban-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: grab;
+  transition: transform .15s, box-shadow .15s;
+}
+.kanban-card:active { cursor: grabbing; }
+.kanban-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  background: linear-gradient(145deg, #ffffff, #f9fafb);
+}
+
+.kanban-card.dragging {
+  opacity: 0.8;
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+.kanban-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.kanban-badge.feature { background: #3b82f6; }
+.kanban-badge.bug     { background: #ef4444; }
+.kanban-badge.improvement { background: #f59e0b; }
+
+
+.kanban-card.parent { border-left: 4px solid #4f46e5; }
+.kanban-card.child  { border-left: 3px solid #9ca3af; }
+
+
+/* Parent badge for subtasks in diff columns */
+.parent-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+/* Texts */
+.kanban-title { font-weight: 600; font-size: 14px; }
+.kanban-meta  { font-size: 12px; color: #6b7280; }
+
+/* Progress bar */
+.kanban-progress {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.kanban-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+}
+
+
+.kanban-col h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Column borders by status */
+.kanban-column{
+  border:2px solid #e5e7eb;        /* base */
+  border-radius:14px;
+  background:#fff;
+}
+/* Different background colors only for header titles */
+.kanban-column[data-status="Not Started"] .kanban-header {
+  background: #dbeafe;   /* light blue */
+  color: #1e3a8a;
+}
+
+.kanban-column[data-status="In Progress"] .kanban-header {
+  background: #fef3c7;   /* light amber */
+  color: #92400e;
+}
+
+.kanban-column[data-status="Completed"] .kanban-header {
+  background: #dcfce7;   /* light green */
+  color: #166534;
+}
+
+.kanban-column[data-status="On Hold"] .kanban-header {
+  background: #ede9fe;   /* light violet */
+  color: #5b21b6;
+}
+
+.kanban-header {
+  padding: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  color: #111827;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Nice drag feedback */
+.kanban-list.drag-over { outline:2px dashed #94a3b8; outline-offset:4px; border-radius:12px; }
+.kanban-card.dragging  { opacity:.8; transform:scale(1.03); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+
+
+/* Sticky header container */
+#header{ position:sticky; top:0; z-index:9; }
+
+/* Bars: smaller height & spacing */
+.bar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:8px 12px; background:#fff;
+  border-bottom:1px solid var(--border); box-shadow: var(--shadow-soft);
+}
+
+/* Brand row smaller */
+#brand-left{ display:flex; align-items:center; gap:10px; }
+#brand-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+}
+
+/* Email pill look */
+.user-pill {
+  margin-left: 16px;                 /* space after Gantt Chart */
+  padding: 4px 12px;                 /* pill padding */
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;              /* full rounded pill */
+  background: #e0e7ff;               /* soft indigo/blue background */
+  color: #4338ca;                    /* indigo text */
+  display: inline-block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); /* soft shadow */
+}
+
+
+
+
+/* Switch Apps button */
+#switchAppsBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 13px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.2s, transform 0.2s;
+}
+
+#switchAppsBtn:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+#brandbar img{ height:56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; }                 /* reduce big logo */
+#brand-title{ font-size:18px; font-weight:700; }
+#brand-subtitle{ font-size:12px; color:var(--light-text); }
+
+/* Action row layout */
+#actionbar{ flex-wrap:wrap; gap:12px; }
+#actionbar .actions-left,
+#actionbar .actions-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+/* Project name centered on the row but stays compact */
+#actionbar .actions-center{
+  flex:1 1 240px; display:flex; justify-content:center;
+}
+#projectName{
+  width: 320px; max-width: 42vw; height: 34px;
+  padding: 6px 10px; border:1px solid #d1d5db; border-radius:10px;
+  font-size: 13px; outline:none; transition:.2s;
+}
+#projectName:focus{ border-color:var(--btn); box-shadow:0 0 0 3px rgba(99,102,241,.2); }
+
+/* Buttons smaller */
+.tb-btn{
+  padding:6px 10px; border-radius:8px; font-size:13px; gap:6px;
+  box-shadow: 0 3px 10px rgba(79,70,229,.12);
+}
+.tb-btn.secondary{ padding:6px 10px; }
+
+/* Reduce icon/text size a touch on very small widths */
+@media (max-width: 900px){
+  #projectName{ width: 260px; max-width: 60vw; }
+  .tb-btn{ padding:6px 8px; font-size:12.5px; }
+}
+@media (max-width: 640px){
+  #actionbar{ justify-content:center; }
+  #projectName{ width:100%; max-width:100%; }
+}
+
+
+
+/* ============== Category groups ============== */
+.bar-categories{
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.bar-categories .group{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.bar-categories .group-title{
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:#475569; /* slate-600 */
+}
+.bar-categories .group-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* Keep Project field sized nicely inside a group */
+.group-project #projectName{
+  width: 280px;
+  max-width: 36vw;
+  height: 34px;
+  padding: 6px 10px;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  font-size:13px;
+}
+.group-project #projectName:focus{
+  border-color: var(--btn);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.2);
+}
+
+
+/* Subtasks */
+.subtasks {
+  margin-top: 6px;
+  padding-left: 12px;
+  font-size: 12px;
+  color: #374151;
+}
+.subtasks li {
+  list-style: disc;
+  margin-bottom: 3px;
+}
+
+/* --- Trello-like Board --- */
+.kanban-board{display:flex;gap:20px;height:100%;overflow-x:auto}
+.kanban-column{flex:1;display:flex;flex-direction:column;background:#f9fafb;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);min-width:280px}
+.kanban-header{background:#f3f4f6;padding:12px;font-weight:700;font-size:14px;border-bottom:1px solid #e5e7eb;border-radius:12px 12px 0 0;text-align:center;color:#374151}
+.kanban-list{flex:1;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+
+.kanban-group{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px;box-shadow:0 2px 8px rgba(2,6,23,.06)}
+.kanban-parent-title{font-weight:700;font-size:13px;color:#111827;margin-bottom:8px;padding:6px 8px;border-radius:8px;background:#f8fafc;cursor:pointer}
+.kanban-sublist{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding-left:8px;border-left:2px dashed #e5e7eb}
+
+.kanban-card{background:#fff;border-radius:12px;padding:12px;font-size:13px;font-weight:500;color:#1f2937;box-shadow:0 2px 6px rgba(0,0,0,.1);transition:transform .15s ease;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.kanban-card:hover{transform:translateY(-2px)}
+.kanban-card.is-parent{border:1px solid #e0e7ff}
+
+.kanban-title{font-size:14px;font-weight:700;color:#111827}
+.kanban-meta{font-size:12px;color:#6b7280}
+.kanban-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.kanban-progress{height:6px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.kanban-progress span{display:block;height:100%;background:#4f46e5}
+
+/* Force the pill look exactly like your screenshot */
+#brand-title .user-pill{
+  margin-left: 16px !important;     /* more space after title */
+  padding: 4px 12px !important;     /* pill padding */
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  border-radius: 999px !important;  /* full pill */
+  background: #e0e7ff !important;   /* light indigo/blue */
+  color: #4338ca !important;        /* indigo text */
+  display: inline-block !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06) !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+
+
+/* Centered hint */
+/* Inline help button */
+.help-inline {
+  display: inline-block;
+  margin-left: 12px;
+  position: relative;
+  cursor: pointer;
+  color: #4f46e5;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+.help-inline i {
+  background: #eef2ff;
+  border-radius: 50%;
+  padding: 4px;
+  font-size: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Tooltip / popover */
+.help-popover {
+  display: none;
+  position: absolute;
+  top: 120%;  /* below the icon */
+    left: 50%; /* keep centered on badge */
+  transform: translateX(-30%) translateY(6px); /* shift 20% to the right */
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+
+.help-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px; left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px; height: 12px;
+  background: #fff;
+  border-left: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.help-popover ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #374151;
+}
+.help-popover li { margin: 4px 0; }
+
+/* Show on hover */
+.help-inline:hover .help-popover {
+  display: block;
+}
+
+
+/* Show popover on hover (desktop) */
+.help-hint:hover .help-popover{ display:block; }
+
+
+/* Pill-style help badge */
+.help-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  margin-left:1100px; padding:6px 12px; border-radius:999px;
+  font-weight:600; font-size:13px; cursor:pointer;
+  color:#3730a3; background:#e0e7ff;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  position:relative; user-select:none;
+  transition:background .2s, box-shadow .2s, transform .15s;
+}
+
+.help-badge:hover{ background:#c7d2fe; box-shadow:0 6px 20px rgba(0,0,0,.12); transform:translateY(-1px); }
+
+/* Info icon inside pill */
+.help-badge i {
+  margin-right: 6px;
+  font-size: 15px;
+  vertical-align: middle;
+  font-size:16px;
+}
+
+/* --- Modern Popover --- */
+.help-popover{
+  position:absolute; top:130%; left:50%; transform:translateX(-50%) translateY(6px);
+  width:clamp(280px, 34vw, 420px);
+  background:rgba(255,255,255,.86);
+  border:1px solid rgba(99,102,241,.2);
+  border-radius:14px;
+  box-shadow:0 24px 60px rgba(2,6,23,.22);
+  backdrop-filter:saturate(140%) blur(6px);
+  -webkit-backdrop-filter:saturate(140%) blur(6px);
+  overflow:hidden;
+  display:none; opacity:0; pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+  z-index:1000;
+}
+
+/* Arrow */
+.help-popover::before{
+  content:""; position:absolute; top:-8px; left:50%;
+  transform:translateX(-50%) rotate(45deg);
+  width:16px; height:16px; background:inherit;
+  border-left:1px solid rgba(99,102,241,.2);
+  border-top:1px solid rgba(99,102,241,.2);
+}
+
+/* Popover text */
+.help-popover ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #374151;
+}
+.help-popover li { margin: 5px 0; }
+
+/* Show on hover */
+.help-badge:hover .help-popover {
+  display: block;
+}
+
+.hp-head{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px;
+  background:linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+  border-bottom:1px solid rgba(99,102,241,.15);
+}
+.hp-icon{
+  width:28px; height:28px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  background:#4f46e5; color:#fff; box-shadow:0 6px 16px rgba(79,70,229,.35);
+}
+.hp-icon i{ font-size:16px; line-height:1; }
+.hp-title{ font-weight:800; color:#1f2937; }
+
+/* Body & list */
+.hp-body{ padding:12px 14px; }
+.hp-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.hp-list li{ display:flex; align-items:flex-start; gap:10px; }
+.hp-list .dot{
+  flex:0 0 8px; height:8px; margin-top:7px;
+  border-radius:999px; background:linear-gradient(90deg,#4f46e5,#06b6d4);
+  box-shadow:0 0 0 3px rgba(99,102,241,.12);
+}
+.hp-list .txt{ color:#374151; font-size:13px; line-height:1.45; }
+.hp-list b{ color:#111827; }
+
+/* Show on hover + keyboard focus */
+.help-badge:hover .help-popover,
+.help-badge:focus-within .help-popover{
+  display:block; opacity:1; pointer-events:auto;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* Keep your Switch Apps button where it is */
+#switchAppsBtn{
+  position:absolute; top:10px; right:10px;
+  background:#4f46e5; color:#fff; border:0;
+  padding: 14px 12px; border-radius: 8px;
+  font-weight: 600; font-size: 13px;
+  display:flex; align-items:center; gap:6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  z-index: 12;
+}
+#switchAppsBtn:hover{ background:#4338ca; }
+
+
+</style>
+</head>
+<body>
+
+<!-- Sticky header wraps two stacked bars -->
+<!-- Sticky header with two bars -->
+<div id="header">
+  <!-- Top bar: brand only (small) -->
+<div id="brandbar" class="bar">
+  <div id="brand-left">
+    <img src="InsightSuiteTransparent.png" alt="Logo" />
+    <div id="brand-text">
+<div id="brand-title">
+  Gantt Chart
+  <span id="userEmail" class="user-pill"></span>
+</div>
+<br>
+      <div id="brand-subtitle">From Ideas to Execution with Intelligent Gantt Planning</div>
+    </div>
+<div class="help-badge">
+  <i class="ri-information-line"></i> Hover to see instructions
+  <div class="help-popover" role="dialog" aria-label="Gantt tips">
+    <div class="hp-head">
+      <span class="hp-icon"><i class="ri-lightbulb-flash-line"></i></span>
+      <div class="hp-title">Quick tips</div>
+    </div>
+
+    <div class="hp-body">
+      <ul class="hp-list">
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Double-click a task</b> to quickly edit its details.</div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Adjust completion %</b> by dragging the progress bar on the chart.</div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Click the <em>Board</em> button</b> to switch to the board view.</div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Export as JSON</b> to securely save your project data.</div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div class="txt"><b>Import the same JSON</b> anytime to seamlessly resume your work.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+  </div>
+</div>
+
+
+
+
+
+ <!-- Second bar: grouped categories -->
+<div id="actionbar" class="bar bar-categories">
+  <!-- Details -->
+  <div class="group">
+    <div class="group-title">Create</div>
+    <div class="group-row">
+      <button class="tb-btn btn-details" onclick="addTask()"><i class="ri-task-line"></i> Task</button>
+      <button class="tb-btn btn-details" onclick="addSummary()"><i class="ri-folder-2-line"></i> Summary</button>
+      <button class="tb-btn btn-details" onclick="addMilestone()"><i class="ri-flag-line"></i> Milestone</button>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="group">
+    <div class="group-title">Filter</div>
+    <div class="group-row">
+      <button class="tb-btn btn-filter" id="toggleBoardBtn" onclick="toggleBoard()"><i class="ri-layout-board-line"></i> Board</button>
+      <button class="tb-btn btn-filter" onclick="setDayView()"><i class="ri-calendar-line"></i> Day</button>
+      <button class="tb-btn btn-filter" onclick="setWeekView()"><i class="ri-calendar-event-line"></i> Week</button>
+      <button class="tb-btn btn-filter" onclick="gantt.showDate(new Date())"><i class="ri-today-line"></i> Today</button>
+      <button class="tb-btn btn-filter" onclick="gantt.eachTask(t=>gantt.open(t.id))"><i class="ri-expand-up-down-line"></i> Expand</button>
+      <button class="tb-btn btn-filter" onclick="gantt.eachTask(t=>gantt.close(t.id))"><i class="ri-contract-up-down-line"></i> Collapse</button>
+    </div>
+  </div>
+
+  <!-- Export / Import -->
+  <div class="group">
+    <div class="group-title">Export / Import</div>
+    <div class="group-row">
+      <button class="tb-btn btn-export" onclick="exportPNG()"><i class="ri-image-line"></i> PNG</button>
+      <button class="tb-btn btn-export" onclick="exportPDF()"><i class="ri-file-pdf-line"></i> PDF</button>
+      <button class="tb-btn btn-export" onclick="exportXLSX()"><i class="ri-file-excel-line"></i> XLSX</button>
+      <button class="tb-btn btn-export" onclick="exportJSON()"><i class="ri-code-line"></i> JSON</button>
+      <label class="tb-btn btn-export">
+        <i class="ri-upload-2-line"></i> Import JSON
+        <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none;">
+      </label>
+    </div>
+  </div>
+
+  <!-- Project -->
+  <div class="group group-project">
+    <div class="group-title">Project</div>
+    <div class="group-row">
+      <input id="projectName" type="text" placeholder="Enter Project Name..." />
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="app-toolbar">
+  <button id="switchAppsBtn" onclick="window.location.href='index.html'">
+    <i class="ri-exchange-line"></i> Switch Apps
+  </button>
+</div>
+
+<div id="gantt_here"></div>
+
+
+
+
+<div id="boardView" style="display:none; height:calc(100% - 60px); padding:16px;">
+  <div class="kanban-board">
+    <div class="kanban-column" data-status="Not Started">
+      <div class="kanban-header">Not Started</div>
+      <div class="kanban-list" id="col-notstarted"></div>
+    </div>
+    <div class="kanban-column" data-status="In Progress">
+      <div class="kanban-header">In Progress</div>
+      <div class="kanban-list" id="col-progress"></div>
+    </div>
+    <div class="kanban-column" data-status="Completed">
+      <div class="kanban-header">Completed</div>
+      <div class="kanban-list" id="col-completed"></div>
+    </div>
+    <div class="kanban-column" data-status="On Hold">
+      <div class="kanban-header">On Hold</div>
+      <div class="kanban-list" id="col-hold"></div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div id="ctx" class="ctx">
+  <button onclick="ctxAction('edit')">
+    <i class="ri-pencil-fill"></i> Edit
+  </button>
+  <button onclick="ctxAction('addTask')">
+    <i class="ri-add-line"></i> Add task
+  </button>
+  <button onclick="ctxAction('addSubtask')">
+    <i class="ri-add-line"></i> Add subtask
+  </button>
+  <button onclick="ctxAction('addMilestone')">
+    <i class="ri-star-fill"></i> Add milestone
+  </button>
+  <hr/>
+  <button onclick="ctxAction('delete')">
+    <i class="ri-delete-bin-line"></i> Delete
+  </button>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop"></div>
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="head">
+      <strong id="modalTitle">Edit task</strong>
+      <button class="tb-btn danger" style="padding:6px 10px;border-radius:8px" onclick="closeModal()">✕</button>
+    </div>
+    <div class="body">
+      <div class="grid2">
+        <div class="field">
+          <label>Task Name</label>
+          <input id="f_text" class="input" />
+        </div>
+        <div class="field">
+          <label>Assigned</label>
+          <input id="f_assigned" class="input" placeholder="Owner / Team" />
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:12px">
+        <div class="field">
+          <label>Start</label>
+          <input id="f_start" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label>End</label>
+          <input id="f_end" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label>Progress (%)</label>
+          <input id="f_progress" type="number" min="0" max="100" class="input" />
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:12px">
+        <div class="field">
+          <label>Status</label>
+          <select id="f_status">
+            <option>Not Started</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>On Hold</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <select id="f_priority">
+            <option>Low</option>
+            <option selected>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <select id="f_type">
+            <option value="">Task</option>
+            <option value="project">Summary</option>
+            <option value="milestone">Milestone</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="tb-btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="tb-btn" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZFm9WXz_LABJa__yzKcFFwc2fOM4_1Kk",
+    authDomain: "user-story-pro.firebaseapp.com",
+    projectId: "user-story-pro",
+    storageBucket: "user-story-pro.appspot.com", // optional: typical bucket domain
+    messagingSenderId: "70670384552",
+    appId: "1:70670384552:web:8920a6a539e1f8fca1319d",
+    measurementId: "G-5LJKY55SNF"
+  };
+
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // Run after DOM is ready so #userEmail exists
+  document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.replace("index.html");
+        return;
+      }
+      // Only unhide if the wrapper exists
+      const appEl = document.getElementById("app");
+      if (appEl) appEl.style.display = "block";
+
+      // ✅ Write email safely
+      const emailEl = document.getElementById("userEmail");
+      if (emailEl) emailEl.textContent = user.email || "";
+    });
+  });
+</script>
+  
+<script>
+
+  
+/* ---------- Utils ---------- */
+const fmtMonth = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDDMMM(d){
+  if(!(d instanceof Date)) return "";   // ⬅️ safe guard
+  return ("0"+d.getDate()).slice(-2)+"-"+fmtMonth[d.getMonth()];
+}
+function toDateInputValue(dt){const y=dt.getFullYear(), m=("0"+(dt.getMonth()+1)).slice(-2), d=("0"+dt.getDate()).slice(-2);return `${y}-${m}-${d}`;}
+function fromDateInputValue(v){if(!v) return null; const [y,m,d]=v.split("-").map(Number); return new Date(y, m-1, d);}
+function statusClass(t){
+  if(t.type==="milestone") return "child-gray";
+  if(t.status==="Completed") return "child-green";
+  if(t.status==="In Progress") return "child-blue";
+  if(t.status==="On Hold") return "child-orange";
+  return "child-gray";
+}
+
+/* ---------- Base Gantt config ---------- */
+gantt.config.date_format = "%Y-%m-%d";
+gantt.config.grid_resize = true;
+gantt.config.drag_move = true;
+gantt.config.drag_resize = true;
+gantt.config.drag_links = true;
+gantt.config.autoscroll = true;
+gantt.config.autofit = true;
+gantt.config.show_progress = true;
+
+/* Split layout with a visible, draggable resizer */
+gantt.config.layout = {
+  css: "gantt_container",
+  rows:[
+    {
+      cols: [
+        {
+          width: 900,
+          min_width: 300,
+          rows: [
+            {view:"grid", scrollY:"scrollVerLeft", scrollX:"scrollHorLeft"},
+            {view:"scrollbar", id:"scrollHorLeft", group:"left"}
+          ]
+        },
+        {resizer:true, width:1},
+        {
+          rows: [
+            {view:"timeline", scrollX:"scrollHorRight", scrollY:"scrollVerRight"},
+            {view:"scrollbar", id:"scrollHorRight", group:"right"}
+          ]
+        },
+        {view:"scrollbar", id:"scrollVerLeft"},
+        {view:"scrollbar", id:"scrollVerRight"}
+      ]
+    }
+  ]
+};
+
+// --- Day/Week view switch ---
+function setScaleConfig(mode){
+  if(mode === "day"){
+    gantt.config.scales = [
+      {unit:"day", step:1, format:"%d %M"}
+    ];
+  } else if(mode === "week"){
+    gantt.config.scales = [
+      {unit:"week", step:1, format:function(date){
+        var weekStart = gantt.date.week_start(new Date(date));
+        return gantt.templates.date_grid(weekStart, gantt.config.date_grid);
+      }}
+    ];
+  }
+}
+
+
+/* Grid columns */
+gantt.config.columns = [
+  { name:"text", label:"Task Name", tree:true, width:240, editor:"text" },
+  { name:"start_date", label:"Start", align:"center", width:90, editor:"date",
+    template:t => t.start_date ? fmtDDMMM(t.start_date) : "" },
+  { name:"end_date", label:"End", align:"center", width:90, editor:"date",
+    template:t => t.end_date ? fmtDDMMM(t.end_date) : "" },
+
+{ name:"status", label:"Status", width:120, align:"center",
+  template:t => {
+    let s = (t.status || "Not Started");
+    let cls = "badge-status ";
+    if(s==="Completed") cls += "badge-completed";
+    else if(s==="In Progress") cls += "badge-progress";
+    else if(s==="On Hold") cls += "badge-hold";
+    else cls += "badge-notstarted";
+    return `<span class="${cls}">${s}</span>`;
+  },
+  editor:"select"
+},
+{ name:"priority", label:"Priority", width:95, align:"center",
+  template:t => {
+    let p = (t.priority || "Medium");
+    let cls = "badge-priority ";
+    if(p==="Low") cls += "badge-low";
+    else if(p==="High") cls += "badge-high";
+    else cls += "badge-medium";
+    return `<span class="${cls}">${p}</span>`;
+  },
+  editor:"select"
+},
+
+  { name:"assigned", label:"Assigned", width:120, editor:"text" },
+  { name:"progress", label:"%", width:50, align:"center",
+    template:t => Math.round((t.progress||0)*100) },
+
+  { name:"color", label:"Color", width:70, align:"center",
+    template: t => {
+      let color = t.color || "#36a2eb";
+      return `<input type="color" value="${color}" onchange="onColorChange(${t.id}, this.value)" />`;
+    }
+  },
+{ 
+  name:"delete", label:"", width:50, align:"center",
+  template: t => {
+    return `
+      <button class="delete-btn" onclick="deleteTask(${t.id})" title="Delete Task">
+        <svg xmlns="http://www.w3.org/2000/svg" 
+             viewBox="0 0 24 24" 
+             fill="red" width="18" height="18">
+          <path d="M3 6h18v2H3V6zm2 3h14v12a2 2 0 0 1-2 2H7a2 
+                   2 0 0 1-2-2V9zm5 3v6h2v-6H10zm4 0v6h2v-6h-2zM9 
+                   4V2h6v2h5v2H4V4h5z"/>
+        </svg>
+      </button>`;
+  }
+}
+];
+
+function resizeWorkAreas(){
+  const header = document.getElementById('header');
+  const h = header ? header.offsetHeight : 0;
+  const ganttEl = document.getElementById('gantt_here');
+  if (ganttEl) ganttEl.style.height = `calc(100vh - ${h}px)`;
+  const board = document.getElementById('boardView');
+  if (board) board.style.height = `calc(100vh - ${h}px)`;
+}
+window.addEventListener('load', resizeWorkAreas);
+window.addEventListener('resize', resizeWorkAreas);
+
+/* ---------- Provide select options ---------- */
+gantt.config.editor_types = {
+  "select": {
+    render: function(config){
+      let input = document.createElement("select");
+      let opts = [];
+      if(config.columnName === "status"){
+        opts = ["Not Started", "In Progress", "Completed", "On Hold"];
+      } else if(config.columnName === "priority"){
+        opts = ["Low", "Medium", "High"];
+      }
+      opts.forEach(v=>{
+        let opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        input.appendChild(opt);
+      });
+      return input;
+    },
+    set_value: function(value, control){
+      control.value = value || "";
+    },
+    get_value: function(control){
+      return control.value;
+    },
+    focus: function(control){ control.focus(); }
+  }
+};
+
+
+
+document.addEventListener("keydown", function(e){
+  if (e.ctrlKey && e.key === "z") {
+    gantt.ext.undo.undo();
+    e.preventDefault();
+  }
+  if (e.ctrlKey && (e.key === "y" || (e.shiftKey && e.key === "Z"))) {
+    gantt.ext.undo.redo();
+    e.preventDefault();
+  }
+});
+
+// Update bar color
+function updateTaskColor(id, color){
+  if(gantt.isTaskExists(id)){ /* ✅ check before update */
+    var task = gantt.getTask(id);
+    task.color = color;
+    gantt.updateTask(id);
+  }
+}
+
+// Apply colors to bars
+gantt.templates.task_style = function(start, end, task){
+  if(task.color){
+    return "background-color:" + task.color + "; border-color:" + task.color + ";";
+  }
+  return "";
+};
+
+function onColorChange(id, color){
+  if(gantt.isTaskExists(id)){ /* check if task still exists */
+    let task = gantt.getTask(id);
+    task.color = color; /* save chosen color */
+    gantt.updateTask(id); /* refresh task */
+  }
+}
+
+// Delete task function
+function removeTask(id){
+  if(confirm("Delete task and its subtasks?")){
+    if(gantt.isTaskExists(id)){
+      gantt.deleteTask(id);
+    }
+  }
+}
+
+// Apply colors to Gantt bars
+gantt.templates.task_style = function(start, end, task){
+  if(task.color){
+    return "background-color:" + task.color + "; border-color:" + task.color + ";";
+  }
+  return "";
+};
+
+/* Scales (Day + Week) */
+gantt.config.scale_height = 50;
+gantt.ext.zoom.init({
+  levels:[
+    {name:"day", scale_height:50, min_column_width:70,
+      scales:[{unit:"month", step:1, format:"%F %Y"},
+              {unit:"day", step:1, format: d => fmtDDMMM(d) }]},
+    {name:"week", scale_height:50, min_column_width:90,
+      scales:[{unit:"month", step:1, format:"%F %Y"},
+              {unit:"week", step:1, format: d => fmtDDMMM(d)}]}
+  ]
+});
+gantt.ext.zoom.setLevel("day");
+
+/* Bars: labels + color + tag child rows in single-line mode */
+let SINGLE_LINE = false;
+gantt.templates.leftside_text = (s,e,t) => fmtDDMMM(s);
+gantt.templates.rightside_text = (s,e,t) => fmtDDMMM(e);
+gantt.templates.task_class = (s,e,t)=>{
+  let base="";
+  if(t.type==="milestone") base = "gantt_task_gray";
+  else if(t.status==="Completed") base = "gantt_task_green";
+  else if(t.status==="In Progress") base = "gantt_task_blue";
+  else if(t.status==="On Hold") base = "gantt_task_orange";
+  if(SINGLE_LINE && t.parent) base += " is-child"; /* hide in CSS, we redraw them */
+  return base;
+};
+
+/* ---------- Single-line overlay (NO Pro APIs) ---------- */
+function getTimelineHost(){
+  /* Prefer the scrollable task data area; fallback to gantt container */
+  return document.querySelector("#gantt_here .gantt_task_data") || document.getElementById("gantt_here");
+}
+function ensureOverlay(){
+  const host = getTimelineHost();
+  if(!host) return null;
+  if(!host.classList.contains("agg-host")) host.classList.add("agg-host");
+  let ov = host.querySelector("#singlelineOverlay");
+  if(!ov){
+    ov = document.createElement("div");
+    ov.id = "singlelineOverlay";
+    ov.className = "agg-layer";
+    host.appendChild(ov);
+  }
+  return ov;
+}
+function clearOverlay(){
+  const ov = ensureOverlay();
+  if(ov) ov.innerHTML = "";
+}
+function renderSingleLineOverlay(){
+  const ov = ensureOverlay();
+  if(!ov) return;
+  ov.innerHTML = "";
+  if(!SINGLE_LINE) return;
+
+  /* For each parent with direct children, draw children as segments on parent's row */
+  gantt.eachTask(function(parent){
+    if(!gantt.hasChild(parent.id)) return;
+
+    const ppos = gantt.getTaskPosition(parent); /* top/height */
+    /* render each direct child as a segment aligned to the parent's row */
+    gantt.eachTask(function(ch){
+      if(ch.parent !== parent.id) return;
+      const cpos = gantt.getTaskPosition(ch); /* left/width for child */
+      const seg = document.createElement("div");
+      seg.className = `child-seg ${statusClass(ch)}`;
+      seg.style.left = cpos.left + "px";
+      seg.style.width = Math.max(6, cpos.width) + "px";
+      seg.style.top = (ppos.top + 3) + "px";
+      seg.style.height = (ppos.height - 6) + "px";
+      seg.textContent = ch.text;
+      seg.title = ch.text;
+      seg.onclick = (ev)=>{ gantt.selectTask(ch.id); ev.stopPropagation(); openModal(ch); };
+      ov.appendChild(seg);
+    }, parent.id);
+  });
+}
+
+/* Repaint overlay whenever something changes or scrolls */
+["onDataRender","onAfterTaskUpdate","onAfterTaskAdd","onAfterTaskDelete","onParse"].forEach(ev=>{
+  gantt.attachEvent(ev, renderSingleLineOverlay);
+});
+gantt.attachEvent("onGanttScroll", function(){ renderSingleLineOverlay(); });
+
+/* ---------- View toggles ---------- */
+function setDayView(){ gantt.ext.zoom.setLevel("day"); gantt.render(); }
+function setWeekView(){ gantt.ext.zoom.setLevel("week"); gantt.render(); }
+
+function setHierarchy(){
+  SINGLE_LINE = false;
+  document.getElementById('gantt_here').classList.remove('singleline');
+  gantt.render(); clearOverlay();
+}
+function setSingleLine(){
+  SINGLE_LINE = true;
+  document.getElementById('gantt_here').classList.add('singleline');
+  gantt.eachTask(t=>t.open = true); /* expand so you can see everything in the grid */
+  gantt.render(); renderSingleLineOverlay();
+}
+
+/* ---------- Context menu ---------- */
+let ctxTaskId = null;
+const ctx = document.getElementById('ctx');
+gantt.attachEvent("onContextMenu", function(taskId, linkId, event){
+  if(taskId){
+    ctxTaskId = taskId;
+    ctx.style.display = "block";
+    ctx.style.left = event.pageX + "px";
+    ctx.style.top = event.pageY + "px";
+    event.preventDefault();
+    return false;
+  }
+  return true;
+});
+document.addEventListener("click", ()=> ctx.style.display="none");
+function ctxAction(action){
+  if(!ctxTaskId) return;
+  if(action==="edit") openModal(gantt.getTask(ctxTaskId));
+  if(action==="addTask") addTask();
+  if(action==="addSubtask") addSubtask(ctxTaskId);
+  if(action==="addMilestone") addMilestone(ctxTaskId);
+  if(action==="delete") deleteTask(ctxTaskId);
+  ctx.style.display="none";
+}
+
+/* ---------- Modal (Add/Edit) ---------- */
+const modal = document.getElementById('modal');
+const backdrop = document.getElementById('modalBackdrop');
+let modalTaskId = null;
+
+function openModal(task){
+  modalTaskId = task?.id || null;
+  document.getElementById('modalTitle').textContent = task ? "Edit task" : "Add task";
+  document.getElementById('f_text').value = task?.text || "";
+  document.getElementById('f_assigned').value = task?.assigned || "";
+  document.getElementById('f_start').value = toDateInputValue(task?.start_date || new Date());
+  document.getElementById('f_end').value = toDateInputValue(task?.end_date || new Date());
+  document.getElementById('f_progress').value = Math.round((task?.progress||0)*100);
+  document.getElementById('f_status').value = task?.status || "Not Started";
+  document.getElementById('f_priority').value = task?.priority || "Medium";
+  document.getElementById('f_type').value = task?.type || "";
+  modal.style.display = "flex"; backdrop.style.display="block";
+}
+function closeModal(){ modal.style.display="none"; backdrop.style.display="none"; modalTaskId=null; }
+function saveModal() {
+  const id = window.currentTaskId;
+  let task = id ? gantt.getTask(id) : null;
+
+  if (task) {
+    // Update existing task
+    task.text = document.getElementById("f_text").value || "";
+    task.assigned = document.getElementById("f_assigned").value || "";
+    task.status = document.getElementById("f_status").value || "Not Started";
+    task.priority = document.getElementById("f_priority").value || "Medium";
+    task.type = document.getElementById("f_type").value || "";
+    task.progress = (parseInt(document.getElementById("f_progress").value, 10) || 0) / 100;
+
+    const sd = document.getElementById("f_start").value;
+    const ed = document.getElementById("f_end").value;
+    task.start_date = sd ? new Date(sd) : null;
+    task.end_date = ed ? new Date(ed) : null;
+
+    gantt.updateTask(task.id);
+  } else {
+    // If you allow adding new tasks from modal
+    const newTask = {
+      id: Date.now(),
+      text: document.getElementById("f_text").value || "",
+      assigned: document.getElementById("f_assigned").value || "",
+      status: document.getElementById("f_status").value || "Not Started",
+      priority: document.getElementById("f_priority").value || "Medium",
+      type: document.getElementById("f_type").value || "",
+      progress: (parseInt(document.getElementById("f_progress").value, 10) || 0) / 100,
+      start_date: document.getElementById("f_start").value ? new Date(document.getElementById("f_start").value) : null,
+      end_date: document.getElementById("f_end").value ? new Date(document.getElementById("f_end").value) : null,
+      parent: 0
+    };
+    gantt.addTask(newTask);
+  }
+
+  // ✅ Refresh both views
+  gantt.render();     // refresh gantt chart
+  populateBoard();    // refresh board
+
+  closeModal();
+}
+
+
+/* ---------- CRUD helpers ---------- */
+function todayStart(){ return gantt.date.day_start(new Date()); }
+function addTask(){ openModal(null); }
+function addSummary(){
+  const id = gantt.uid();
+  const s = todayStart();
+  gantt.addTask({ id, text:"Summary Task", type:"project", start_date:s,
+    end_date: gantt.date.add(s, 10, "day"), open:true });
+}
+function addMilestone(parentId=null){
+  const parent = parentId || gantt.getSelectedId();
+  const start = parent ? (gantt.getTask(parent).start_date || todayStart()) : todayStart();
+  const id = gantt.uid();
+  gantt.addTask({ id, text:"Milestone", type:"milestone", start_date:start, parent: parent||0 });
+}
+function addSubtask(parentId){
+  const p = gantt.getTask(parentId);
+  const id = gantt.uid();
+  const start = p.start_date ? new Date(p.start_date) : todayStart();
+  gantt.addTask({
+    id, text:"New Subtask", parent: parentId, start_date:start,
+    end_date: gantt.date.add(start, 3, "day"),
+    status:"Not Started", priority:"Medium", progress:0
+  }, parentId);
+  gantt.open(parentId);
+  gantt.showTask(id);
+}
+function deleteTask(id){ if(confirm("Delete task and its subtasks?")) gantt.deleteTask(id); }
+
+/* ---------- Save / Load ---------- */
+function save(){
+  const data = { data:[], links:[] };
+  gantt.eachTask(t => data.data.push({
+    id:t.id, text:t.text, start_date:gantt.templates.xml_format(t.start_date),
+    end_date:gantt.templates.xml_format(t.end_date),
+    type:t.type, parent:t.parent, status:t.status, priority:t.priority,
+    assigned:t.assigned, progress:t.progress
+  }));
+  gantt.getLinks().forEach(l => data.links.push(l));
+  localStorage.setItem("pro_gantt_data", JSON.stringify(data));
+  alert("Saved to browser storage.");
+}
+function load(){
+  const raw = localStorage.getItem("pro_gantt_data");
+  if(!raw){ alert("No saved data found."); return; }
+  gantt.clearAll(); gantt.parse(JSON.parse(raw));
+}
+
+/* ---------- Seed data ---------- */
+const seed = {
+  data:[
+    {id:1, text:"AI Forecast Verbiage change", type:"project", start_date:"2025-08-19", end_date:"2025-09-08", open:true, status:"In Progress", priority:"High", color:"#4caf50"},
+    {id:2, text:"QA", parent:1, start_date:"2025-08-19", end_date:"2025-08-24", status:"In Progress", priority:"Medium", assigned:"QA Team", progress:0.5, color:"#2196f3"},
+    {id:3, text:"Prod Deployment", parent:1, start_date:"2025-08-25", end_date:"2025-09-01", status:"Not Started", priority:"High", assigned:"DevOps", color:"#ff9800"},
+    {id:4, text:"Stabilization", parent:1, start_date:"2025-09-01", end_date:"2025-09-08", status:"Not Started", priority:"Medium", assigned:"Team", color:"#9c27b0"},
+    {id:5, text:"Backend", type:"project", start_date:"2025-09-01", end_date:"2025-09-25", open:true, status:"Not Started", priority:"Medium", color:"#f44336"},
+    {id:6, text:"API Layer", parent:5, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
+    {id:7, text:"DB Schema", parent:5, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"},
+    {id:8, text:"UI Polish", start_date:"2025-08-27", end_date:"2025-09-01", status:"Not Started", priority:"Medium", assigned:"UI Dev", color:"#607d8b"}
+  ],
+  links:[
+    {id:1, source:2, target:3, type:"0"},
+    {id:2, source:3, target:4, type:"0"},
+    {id:3, source:6, target:7, type:"0"}
+  ]
+};
+
+
+function exportPNG(){
+  const projectTitle = document.getElementById("projectName").value || "Project Gantt Chart";
+
+  const originalCols = gantt.config.columns;
+  gantt.config.columns = originalCols.filter(c => 
+    c.name !== "progress" && c.name !== "color" && c.name !== "delete"
+  );
+
+  gantt.exportToPNG({
+    raw: true,   // <-- required
+    header: `
+      <div style="text-align:center; font-family:Segoe UI; margin:0; padding:8px 0;">
+        <h2 style="margin:0; font-size:18px;">${projectTitle}</h2>
+        <hr style="border:0; border-top:1px solid #ccc; margin-top:6px;">
+      </div>
+    `,
+    footer: `
+      <div style="text-align:center; font-size:12px; color:#555;">
+        Generated on ${new Date().toLocaleDateString()}
+      </div>
+    `
+  }).then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = projectTitle.replace(/\s+/g,'_') + ".png";
+    a.click();
+    URL.revokeObjectURL(url);
+
+    gantt.config.columns = originalCols;
+    gantt.render();
+  });
+}
+
+
+
+
+function exportPDF(){
+  const projectTitle = document.getElementById("projectName").value || "Project Timeline Report";
+
+  // 1️⃣ Backup columns
+  const originalCols = gantt.config.columns;
+
+  // 2️⃣ Hide unwanted columns
+  gantt.config.columns = originalCols.filter(c => 
+    c.name !== "progress" && c.name !== "color" && c.name !== "delete"
+  );
+
+  // 3️⃣ Run export (no redirect, no watermark)
+  gantt.exportToPDF({
+    raw: true,   // <-- required
+    locale: "en",
+    skin: "terrace",
+    portrait: false,
+    paper: "A4",
+    header: `
+      <div style="text-align:center; font-family:Segoe UI; margin:0; padding:8px 0;">
+        <h2 style="margin:0; font-size:18px;">${projectTitle}</h2>
+        <hr style="border:0; border-top:1px solid #ccc; margin-top:6px;">
+      </div>
+    `,
+    footer: `
+      <div style="text-align:center; font-size:12px; color:#555;">
+        Confidential – Generated on ${new Date().toLocaleDateString()}
+      </div>
+    `
+  }).then(blob => {
+    // 4️⃣ Trigger download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = projectTitle.replace(/\s+/g,'_') + ".pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // 5️⃣ Restore original columns
+    gantt.config.columns = originalCols;
+    gantt.render();
+  });
+}
+
+
+
+async function exportXLSX() {
+  const projectTitle = document.getElementById("projectName").value.trim() || "Gantt Chart";
+
+  function formatDate(date) {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+  }
+
+  // Helper → build one worksheet
+  function buildSheet(ws, tasks, dates) {
+    // Header
+    let header = ["Task Name","Start Date","End Date","Status","Priority","Assigned","Progress (%)"];
+    dates.forEach(d => header.push(d.label));
+    ws.addRow(header);
+
+    // Group by parent
+    const taskMap = {};
+    tasks.forEach(t => {
+      if (!taskMap[t.parent || 0]) taskMap[t.parent || 0] = [];
+      taskMap[t.parent || 0].push(t);
+    });
+
+    function addTaskAndChildren(t) {
+      let taskName = (t.$level > 0 ? "   ".repeat(t.$level) + "↳ " : "") + t.text;
+
+      const row = ws.addRow([
+        taskName,
+        formatDate(t.start_date),
+        formatDate(t.end_date),
+        t.status || "",
+        t.priority || "",
+        t.assigned || "",
+        Math.round((t.progress||0)*100)
+      ]);
+
+      let labelPlaced = false;
+
+      dates.forEach((range, idx) => {
+        if (t.start_date && t.end_date && range.start <= t.end_date && range.end >= t.start_date) {
+          const cell = row.getCell(8 + idx);
+
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: (t.color ? "FF" + t.color.replace("#","") : "FF4F81BD") }
+          };
+
+          if (!labelPlaced) {
+            cell.value = t.text;
+            cell.font = { color: { argb:"FFFFFFFF" }, bold:true };
+            cell.alignment = { horizontal:"center", vertical:"middle" };
+            labelPlaced = true;
+          }
+        }
+      });
+
+      // Add subtasks
+      if (taskMap[t.id]) {
+        taskMap[t.id].forEach(st => addTaskAndChildren(st));
+      }
+    }
+
+    // Add parent + children, then gap
+    (taskMap[0] || []).forEach(parent => {
+      addTaskAndChildren(parent);
+      ws.addRow([]); // blank line after group
+    });
+
+    ws.columns.forEach(col => { col.width = 15; });
+  }
+
+  // Collect tasks
+  const tasks = [];
+  gantt.eachTask(t => tasks.push(t));
+  if (tasks.length === 0) return;
+
+  // Project range
+  let minDate = gantt.getState().min_date;
+  let maxDate = gantt.getState().max_date;
+
+  // Day view headers
+  let dayDates = [];
+  for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+    dayDates.push({
+      label: d.toLocaleDateString("en-GB",{ day:"2-digit", month:"short" }),
+      start: new Date(d),
+      end: new Date(d)
+    });
+  }
+
+  // Week view headers
+  let weekDates = [];
+  let d = new Date(minDate);
+  d.setDate(d.getDate() - d.getDay() + 1); // align to Monday
+  while (d <= maxDate) {
+    let weekStart = new Date(d);
+    weekDates.push({
+      label: weekStart.toLocaleDateString("en-GB",{ day:"2-digit", month:"short" }),
+      start: weekStart,
+      end: new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()+6)
+    });
+    d.setDate(d.getDate() + 7);
+  }
+
+  // Build workbook
+  const wb = new ExcelJS.Workbook();
+  buildSheet(wb.addWorksheet("Day View"), tasks, dayDates);
+  buildSheet(wb.addWorksheet("Week View"), tasks, weekDates);
+
+  // Save
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = projectTitle.replace(/\s+/g,'_') + ".xlsx";
+  link.click();
+}
+
+
+
+/** ---------------- EXPORT JSON ---------------- **/
+function exportJSON() {
+  const tasks = { data: [] };
+
+  gantt.eachTask(function(task){
+    tasks.data.push({
+      id: task.id,
+      text: task.text,
+      start_date: gantt.date.date_to_str("%Y-%m-%d")(task.start_date),
+      end_date: gantt.date.date_to_str("%Y-%m-%d")(task.end_date),
+      status: task.status || "",
+      priority: task.priority || "",
+      assigned: task.assigned || "",
+      progress: task.progress || 0,
+      parent: task.parent || 0,
+      color: task.color || ""
+    });
+  });
+
+  const projectName = document.getElementById("projectName")?.value?.trim();
+  const fileName = projectName ? projectName + ".json" : "Gantt Chart.json";
+
+  const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+}
+
+/** ---------------- IMPORT JSON ---------------- **/
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+
+      gantt.clearAll();
+      gantt.parse(json);
+
+      alert("✅ JSON imported successfully!");
+    } catch (err) {
+      alert("❌ Invalid JSON file.");
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+
+
+
+
+gantt.config.editable = true;   // allow editing
+gantt.config.grid_edit = true;  // enable inline editing in grid
+
+
+/* ---------- Init ---------- */
+setScaleConfig("day");
+gantt.init("gantt_here");
+gantt.parse(seed);
+
+/* ---------- Ensure edits persist ---------- */
+gantt.attachEvent("onAfterEditStop", function(state, editor){
+  if(!state || !editor) return;
+  const id = state.id;
+  if(gantt.isTaskExists(id)){
+    const task = gantt.getTask(id);
+    task[editor.columnName] = state.value;  // persist change
+    gantt.updateTask(id);                   // refresh UI
+  }
+});
+
+
+
+/* ---------- Board ---------- */
+
+// ---------- Board Toggle ----------
+/* ---------- Board ---------- */
+
+function toggleBoard() {
+  const ganttDiv = document.getElementById("gantt_here");
+  const boardDiv = document.getElementById("boardView");
+  const btn      = document.getElementById("toggleBoardBtn");
+
+  const showBoard = boardDiv.style.display !== "block";
+  boardDiv.style.display = showBoard ? "block" : "none";
+  ganttDiv.style.display = showBoard ? "none"  : "block";
+  btn.innerHTML = showBoard
+    ? `<i class="ri-bar-chart-2-line"></i> Gantt`
+    : `<i class="ri-layout-board-line"></i> Board`;
+
+  if (showBoard) {          // just switched to board
+    populateBoard();
+    initBoardDnD();
+  } else {
+    gantt.render();
+  }
+}
+
+
+
+
+function populateBoard() {
+  const statuses = {
+    "Not Started": document.getElementById("col-notstarted"),
+    "In Progress": document.getElementById("col-progress"),
+    "Completed": document.getElementById("col-completed"),
+    "On Hold": document.getElementById("col-hold")
+  };
+
+  // Clear old content
+  Object.values(statuses).forEach(col => col.innerHTML = "");
+
+  // ✅ Helper: safe date formatting
+  const fmtDate = d => {
+    if (!d) return "";
+    if (typeof d === "string") d = new Date(d);
+    return d instanceof Date && !isNaN(d) 
+      ? d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"})
+      : "";
+  };
+
+  // ✅ Build hierarchy (roots → children)
+  gantt.eachTask(t => {
+    if (t.$level !== 0) return; // only top-level
+
+    const children = gantt.getChildren(t.id).map(cid => gantt.getTask(cid));
+
+    // Place parent card
+    const parentCard = makeBoardCard(t, true, fmtDate);
+    const col = statuses[t.status] || statuses["Not Started"];
+    col.appendChild(parentCard);
+
+    // Place its children under it
+    if (children.length) {
+      const subWrap = document.createElement("div");
+      subWrap.className = "subtask-wrap";
+      children.forEach(st => subWrap.appendChild(makeBoardCard(st, false, fmtDate)));
+      col.appendChild(subWrap);
+    }
+  });
+}
+
+// ✅ Card builder
+function makeBoardCard(task, isParent, fmtDate) {
+  const card = document.createElement("div");
+  card.className = "kanban-card" + (isParent ? " parent" : " child");
+
+  // Title
+  const title = document.createElement("div");
+  title.className = "kanban-title";
+  title.textContent = task.text || "(Untitled)";
+
+  // Meta
+  const meta = document.createElement("div");
+  meta.className = "kanban-meta";
+  meta.textContent = 
+    (task.assigned ? `👤 ${task.assigned} | ` : "") +
+    `📅 ${fmtDate(task.start_date)} → ${fmtDate(task.end_date)}`;
+
+  // Progress bar
+  const progress = document.createElement("div");
+  progress.className = "kanban-progress";
+  const bar = document.createElement("span");
+  bar.style.width = `${Math.round((task.progress||0)*100)}%`;
+  progress.appendChild(bar);
+
+  card.appendChild(title);
+  card.appendChild(meta);
+  card.appendChild(progress);
+
+  card.onclick = () => openTaskDetails(task.id); // ✅ make clickable
+
+  return card;
+}
+
+// ---------- Helpers ----------
+function asDate(x){
+  if(!x) return null;
+  return (x instanceof Date) ? x : new Date(x);
+}
+function fmtDate(d){
+  return d ? d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}) : "—";
+}
+function fmtRange(t){
+  const sd = asDate(t.start_date), ed = asDate(t.end_date);
+  return `${fmtDate(sd)} → ${fmtDate(ed)}`;
+}
+function statusKey(t){
+  const s = (t.status || "Not Started").toLowerCase();
+  if (s === "in progress") return "In Progress";
+  if (s === "completed")   return "Completed";
+  if (s === "on hold")     return "On Hold";
+  return "Not Started";
+}
+function badgeStatusClass(s){
+  s = (s||"").toLowerCase();
+  if(s==="in progress") return "badge-progress";
+  if(s==="completed") return "badge-completed";
+  if(s==="on hold") return "badge-hold";
+  return "badge-notstarted";
+}
+function badgePriorityClass(p){
+  p=(p||"").toLowerCase();
+  if(p==="high") return "badge-high";
+  if(p==="low") return "badge-low";
+  return "badge-medium";
+}
+function escapeHtml(str){
+  return String(str||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+}
+
+// Build indexes: byId, children[], roots[]
+function buildIndex(){
+  const byId = {};
+  const children = {};
+  const roots = [];
+  gantt.eachTask(task=>{
+    byId[task.id] = task;
+    const p = task.parent || 0;
+    if(!children[p]) children[p] = [];
+    if(p) children[p].push(task.id);
+  });
+  gantt.eachTask(task=>{
+    if(!task.parent || task.parent === 0) roots.push(task.id);
+  });
+  return { byId, children, roots };
+}
+
+// ---------- Card factory ----------
+function makeKanbanCard(t, isParent){
+  const card = document.createElement("div");
+  card.className = "kanban-card" + (isParent ? " is-parent" : "");
+  card.onclick = () => openTaskDetails(t.id);
+
+  const title = document.createElement("div");
+  title.className = "kanban-title";
+  title.textContent = t.text || "(Untitled)";
+
+  const meta = document.createElement("div");
+  meta.className = "kanban-meta";
+  meta.innerHTML = `${t.assigned?`👤 ${escapeHtml(t.assigned)} · `:""}📅 ${fmtRange(t)}`;
+
+  const badges = document.createElement("div");
+  badges.className = "kanban-badges";
+  badges.innerHTML = `
+    <span class="badge-status ${badgeStatusClass(t.status)}">${t.status||"Not Started"}</span>
+    <span class="badge-priority ${badgePriorityClass(t.priority)}">${t.priority||"Medium"}</span>
+  `;
+
+  const prog = document.createElement("div");
+  prog.className = "kanban-progress";
+  const fill = document.createElement("span");
+  fill.style.width = `${Math.round((t.progress||0)*100)}%`;
+  prog.appendChild(fill);
+
+  card.appendChild(title);
+  card.appendChild(meta);
+  card.appendChild(badges);
+  card.appendChild(prog);
+
+  return card;
+}
+
+// ---------- Open details (uses your existing modal) ----------
+function openTaskDetails(id){
+  // ⛔ Block modal when Board view is visible
+  const board = document.getElementById("boardView");
+  if (board && board.style.display === "block") return;
+
+  const t = gantt.getTask(id);
+  if(!t) return;
+
+  document.getElementById("f_text").value = t.text || "";
+  document.getElementById("f_assigned").value = t.assigned || "";
+  document.getElementById("f_status").value = t.status || "Not Started";
+  document.getElementById("f_priority").value = t.priority || "Medium";
+  document.getElementById("f_type").value = t.type || "";
+  document.getElementById("f_progress").value = Math.round((t.progress||0)*100);
+
+  const asDate = x => (x instanceof Date) ? x : (x ? new Date(x) : null);
+  const sd = asDate(t.start_date), ed = asDate(t.end_date);
+  document.getElementById("f_start").value = sd ? sd.toISOString().slice(0,10) : "";
+  document.getElementById("f_end").value   = ed ? ed.toISOString().slice(0,10) : "";
+
+  document.getElementById("modalBackdrop").style.display="block";
+  document.getElementById("modal").style.display="flex";
+}
+
+// ---------- Populate Board (Trello ordering) ----------
+// Rule: In each status column -> for each root (parent) that itself or any child matches the column status,
+// show the parent first, then list its children (of that status) below it.
+function populateBoard() {
+  // Map statuses to column elements
+  const statuses = {
+    "Not Started": document.getElementById("col-notstarted"),
+    "In Progress": document.getElementById("col-progress"),
+    "Completed":   document.getElementById("col-completed"),
+    "On Hold":     document.getElementById("col-hold")
+  };
+
+  // Helper: find the right column for a task's status (with fallback)
+  const getCol = (statusRaw) => {
+    const s = String(statusRaw || "").trim();
+    // Normalize common variants
+    const key =
+      /^(not\s*started|todo|to\s*do)$/i.test(s) ? "Not Started" :
+      /^(in\s*progress|doing|wip)$/i.test(s)     ? "In Progress" :
+      /^(done|completed|complete)$/i.test(s)     ? "Completed" :
+      /^(hold|on\s*hold|blocked)$/i.test(s)      ? "On Hold" :
+      "Not Started";
+    return { key, col: statuses[key] };
+  };
+
+  // Format: "28 Aug"
+  const fmtDate = (d) => {
+    if (!d) return "";
+    const dd = typeof d === "string" ? new Date(d) : d;
+    return dd instanceof Date && !isNaN(dd)
+      ? dd.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })
+      : "";
+  };
+
+  // Clear only the card containers (keep headers/counters)
+  Object.values(statuses).forEach(col => {
+    if (!col) return;
+    // If your column has a dedicated cards wrapper like `.kanban-cards`, prefer that:
+    const cardsWrap = col.querySelector(".kanban-cards") || col;
+    cardsWrap.innerHTML = "";
+    // Also reset an empty-state if present
+    const empty = col.querySelector(".kanban-empty");
+    if (empty) empty.remove();
+  });
+
+  // Build fragments per column for minimal reflow
+  const frags = {
+    "Not Started": document.createDocumentFragment(),
+    "In Progress": document.createDocumentFragment(),
+    "Completed":   document.createDocumentFragment(),
+    "On Hold":     document.createDocumentFragment()
+  };
+
+  // Count per column
+  const counts = { "Not Started": 0, "In Progress": 0, "Completed": 0, "On Hold": 0 };
+
+  // Walk parents, then children
+  gantt.eachTask(parent => {
+    if (parent.$level !== 0) return;
+
+    const { key: pKey } = getCol(parent.status || parent.board_status || parent.state);
+    const pCard = renderCard(parent, true, statuses, fmtDate);
+    if (pCard) {
+      frags[pKey].appendChild(pCard);
+      counts[pKey]++;
+    }
+
+    const children = gantt.getChildren(parent.id) || [];
+    for (const cid of children) {
+      const child = gantt.getTask(cid);
+      const { key: cKey } = getCol(child.status || child.board_status || child.state);
+      const cCard = renderCard(child, false, statuses, fmtDate, parent.text);
+      if (cCard) {
+        frags[cKey].appendChild(cCard);
+        counts[cKey]++;
+      }
+    }
+  });
+
+  // Mount fragments and add empty-state if needed
+  Object.entries(statuses).forEach(([key, col]) => {
+    if (!col) return;
+    const cardsWrap = col.querySelector(".kanban-cards") || col;
+    cardsWrap.appendChild(frags[key]);
+
+    if (!counts[key]) {
+      const empty = document.createElement("div");
+      empty.className = "kanban-empty text-sm opacity-70 px-3 py-4 text-center";
+      cardsWrap.appendChild(empty);
+    }
+
+    // If you have a counter element like: <span data-count="Not Started"></span>
+    const counter = document.querySelector(`[data-count="${key}"]`);
+    if (counter) counter.textContent = counts[key];
+  });
+
+  // (Re)attach drop listeners to lists
+  // If your initBoardDnD already guards duplicate listeners, call directly.
+  // Otherwise, consider removing existing listeners inside that function first.
+  initBoardDnD();
+}
+
+
+function renderCard(task, isParent, statuses, fmtDate, parentName = "") {
+  const card = document.createElement("div");
+  card.className = "kanban-card" + (isParent ? " parent" : " child");
+  card.dataset.id = task.id;
+  card.setAttribute("draggable", "true");
+
+  if (!isParent && parentName) {
+    const badge = document.createElement("div");
+    badge.className = "parent-badge";
+    badge.textContent = parentName;
+    card.appendChild(badge);
+  }
+
+  const title = document.createElement("div");
+  title.className = "kanban-title";
+  title.textContent = task.text || "(Untitled)";
+
+  const meta = document.createElement("div");
+  meta.className = "kanban-meta";
+  meta.textContent =
+    (task.assigned ? `👤 ${task.assigned} | ` : "") +
+    `📅 ${fmtDate(task.start_date)} → ${fmtDate(task.end_date)}`;
+
+  const progress = document.createElement("div");
+  progress.className = "kanban-progress";
+  const bar = document.createElement("span");
+  bar.style.width = `${Math.round((task.progress || 0) * 100)}%`;
+  progress.appendChild(bar);
+
+  card.appendChild(title);
+  card.appendChild(meta);
+  card.appendChild(progress);
+  card.onclick = () => openTaskDetails(task.id);
+
+  const col = statuses[task.status] || statuses["Not Started"];
+  col.appendChild(card);
+
+  // Draggable wiring for this card
+  wireCardDnD(card, task.id);
+}
+
+function wireCardDnD(card, taskId) {
+  card.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", String(taskId));
+    card.classList.add("dragging");
+  });
+  card.addEventListener("dragend", () => {
+    card.classList.remove("dragging");
+  });
+}
+
+// Attach drop listeners to the inner lists once per populate
+function initBoardDnD() {
+  // each column should look like:
+  // <div class="kanban-column" data-status="In Progress">
+  //   <div class="kanban-header">...</div>
+  //   <div class="kanban-list" id="col-progress"></div>
+  // </div>
+
+  document.querySelectorAll("#boardView .kanban-list").forEach(list => {
+    list.addEventListener("dragover", e => {
+      e.preventDefault();
+      list.classList.add("drag-over");
+    });
+
+    list.addEventListener("dragleave", () => {
+      list.classList.remove("drag-over");
+    });
+
+    list.addEventListener("drop", e => {
+      e.preventDefault();
+      list.classList.remove("drag-over");
+
+      const idStr = e.dataTransfer.getData("text/plain");
+      const taskId = idStr ? parseInt(idStr, 10) : null;
+      if (!taskId || !gantt.isTaskExists(taskId)) return;
+
+      const column = list.closest(".kanban-column");
+      const newStatus = column?.dataset?.status || "Not Started";
+
+      const task = gantt.getTask(taskId);
+      task.status = newStatus;
+      gantt.updateTask(taskId);
+
+      // Rebuild lists to reflect move
+      populateBoard();
+    });
+  });
+}
+
+
+function enableDragDrop(card, taskId) {
+  card.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("taskId", taskId);
+    setTimeout(() => card.style.display = "none", 0);
+  });
+  card.addEventListener("dragend", e => {
+    card.style.display = "flex";
+  });
+
+  document.querySelectorAll(".kanban-col").forEach(col => {
+    col.addEventListener("dragover", e => e.preventDefault());
+    col.addEventListener("drop", e => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData("taskId");
+      const task = gantt.getTask(id);
+      const newStatus = col.querySelector("h3").textContent;
+      task.status = newStatus;
+      gantt.updateTask(id);
+      populateBoard();
+    });
+  });
+}
+
+
+
+
+// ✅ Card builder
+function makeBoardCard(task, isParent, fmtDate) {
+  const card = document.createElement("div");
+  card.className = "kanban-card" + (isParent ? " parent" : " child");
+
+  // Title
+  const title = document.createElement("div");
+  title.className = "kanban-title";
+  title.textContent = task.text || "(Untitled)";
+
+  // Meta
+  const meta = document.createElement("div");
+  meta.className = "kanban-meta";
+  meta.textContent = 
+    (task.assigned ? `👤 ${task.assigned} | ` : "") +
+    `📅 ${fmtDate(task.start_date)} → ${fmtDate(task.end_date)}`;
+
+  // Progress bar
+  const progress = document.createElement("div");
+  progress.className = "kanban-progress";
+  const bar = document.createElement("span");
+  bar.style.width = `${Math.round((task.progress||0)*100)}%`;
+  progress.appendChild(bar);
+
+  card.appendChild(title);
+  card.appendChild(meta);
+  card.appendChild(progress);
+
+  card.onclick = () => openTaskDetails(task.id); // ✅ make clickable
+
+  return card;
+}
+
+function asDate(d) {
+  if (!d) return null;
+  if (d instanceof Date) return d;
+  return new Date(d);
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  const dt = asDate(d);
+  return dt ? dt.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "";
+}
+
+function makeKanbanCard(task, isParent) {
+  const card = document.createElement("div");
+  card.className = "kanban-card";
+  if (isParent) card.classList.add("kanban-parent");
+
+  card.innerHTML = `
+    <strong>${task.text || "Untitled"}</strong><br>
+    <small>${formatDate(task.start_date)} → ${formatDate(task.end_date)}</small><br>
+    <span class="assigned">${task.assigned || ""}</span>
+  `;
+  card.onclick = () => openTaskDetails(task.id);
+
+  return card;
+}
+
+
+  let currentView = "gantt"; // default view
+
+  // 2. Example: function to switch views
+function switchView(view) {
+  currentView = view;
+
+  if (currentView === "board") {
+    document.getElementById("gantt_here").style.display = "none";
+    document.getElementById("boardView").style.display = "block";
+    populateBoard();
+  } else {
+    document.getElementById("boardView").style.display = "none";
+    document.getElementById("gantt_here").style.display = "block";
+    gantt.render();
+  }
+}
+
+
+
+
+const columns = {
+  "Not Started": document.getElementById("col-notstarted"),
+  "In Progress": document.getElementById("col-progress"),
+  "Completed": document.getElementById("col-completed"),
+  "On Hold": document.getElementById("col-hold")
+};
+
+// Example tasks
+const tasks = [
+  { title: "Task 1", status: "Not Started", type: "feature", priority: "high", parent: true },
+  { title: "Task 2", status: "In Progress", type: "bug", priority: "medium", parent: false },
+  { title: "Task 3", status: "Completed", type: "improvement", priority: "low", parent: false },
+  { title: "Task 4", status: "On Hold", type: "feature", priority: "medium", parent: true },
+];
+
+// Create cards dynamically
+tasks.forEach(task => {
+  const card = document.createElement("div");
+  card.className = `kanban-card ${task.parent ? "parent" : "child"} ${task.priority}`;
+  card.draggable = true;
+  card.innerHTML = `<strong>${task.title}</strong>
+                    <span class="kanban-badge ${task.type}">${task.type}</span>`;
+  
+  // Drag events
+  card.addEventListener("dragstart", e => card.classList.add("dragging"));
+  card.addEventListener("dragend", e => card.classList.remove("dragging"));
+  
+  columns[task.status].appendChild(card);
+});
+
+// Allow drop on columns
+Object.values(columns).forEach(col => {
+  col.addEventListener("dragover", e => e.preventDefault());
+  col.addEventListener("drop", e => {
+    const dragged = document.querySelector(".kanban-card.dragging");
+    if(dragged) col.appendChild(dragged);
+  });
+});
+
+
+// Make a single card draggable
+function wireCardDnD(card, taskId){
+  card.setAttribute("draggable","true");
+
+  card.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", String(taskId));
+    card.classList.add("dragging");
+  });
+
+  card.addEventListener("dragend", () => {
+    card.classList.remove("dragging");
+  });
+}
+
+// Attach listeners to all drop zones (the lists inside columns)
+function initBoardDnD(){
+  document.querySelectorAll("#boardView .kanban-list").forEach(list => {
+    list.addEventListener("dragover", e => {
+      e.preventDefault();
+      list.classList.add("drag-over");
+    });
+    list.addEventListener("dragleave", () => {
+      list.classList.remove("drag-over");
+    });
+    list.addEventListener("drop", e => {
+      e.preventDefault();
+      list.classList.remove("drag-over");
+
+      const idStr   = e.dataTransfer.getData("text/plain");
+      const taskId  = idStr ? parseInt(idStr,10) : null;
+      if (!taskId || !gantt.isTaskExists(taskId)) return;
+
+      // Determine new status from the column's data-status
+      const column   = list.closest(".kanban-column");
+      const newState = column?.dataset?.status || "Not Started";
+
+      const task = gantt.getTask(taskId);
+      task.status = newState;
+      gantt.updateTask(taskId);
+
+      // Rebuild the board to reflect the move
+      populateBoard();
+    });
+  });
+}
+
+// Tap to toggle help on touch devices
+  (function(){
+    const help = document.getElementById('ganttHelp');
+    if(!help) return;
+
+    help.addEventListener('click', (e) => {
+      // Toggle a class so it stays open on tap
+      help.classList.toggle('show');
+      const pop = help.querySelector('.help-popover');
+      if(pop) pop.style.display = help.classList.contains('show') ? 'block' : '';
+    });
+
+    // Close when tapping outside
+    document.addEventListener('click', (e) => {
+      if(!help.contains(e.target)){
+        help.classList.remove('show');
+        const pop = help.querySelector('.help-popover');
+        if(pop) pop.style.display = '';
+      }
+    });
+  })();
+
+
+/* Keep overlay synced */
+gantt.attachEvent("onGanttReady", renderSingleLineOverlay);
+gantt.attachEvent("onTaskDblClick", function(id,e){ openModal(gantt.getTask(id)); return false; });
+</script>
+</body>
+</html>
