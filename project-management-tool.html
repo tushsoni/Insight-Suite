@@ -483,6 +483,9 @@ body, html {
  </head>
  <body class="p-8">
   <!-- Sidebar -->
+  
+ <div id="app" style="display:none;">
+
 <div id="sidebar" 
      class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 
             transform -translate-x-full transition-transform duration-300 
@@ -492,13 +495,21 @@ body, html {
     <!-- Replace Lucide icon with PNG -->
     <img src="InsightSuiteTransparent.png" alt="Project Management Logo" class="w-10 h-10 object-contain" />
     Project Management
+	
   </h2>
+  
   <button id="closeSidebar" class="lg:hidden text-gray-500 text-2xl">&times;</button>
 </div>
 
 
   <nav class="flex flex-col space-y-2 px-4 pb-6">
     <div class="mt-8">
+	
+	  <!-- Logged-in User Email -->
+<span id="userEmail" 
+      class="ml-3 px-4 py-2 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700 shadow">
+</span>
+<br><br>
     </div>
 
     <!-- 🔹 Dashboard Tab -->
@@ -513,7 +524,7 @@ body, html {
 
     <!-- 🔹 Kanban Tab -->
     <button class="nav-btn flex items-center px-4 py-3 rounded-lg hover:bg-gray-100 transition" onclick="showView('kanban')">
-      <i class="fas fa-clipboard-list mr-3 text-indigo-500"></i> Kanban
+      <i class="fas fa-clipboard-list mr-3 text-indigo-500"></i> Board
     </button>
 
     <!-- 🔹 Sprints Tab -->
@@ -602,6 +613,14 @@ body, html {
   SWOT Analysis
 </button>
 
+<!-- User Story -->
+<button 
+  class="submenu-btn flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-indigo-100 transition"
+  onclick="window.open('User-Story.html', '_blank')">
+  <i data-lucide="Notebook" class="text-indigo-500"></i>
+  User Story
+</button>
+
 <!-- Diagram -->
 <button 
   class="submenu-btn flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-indigo-100 transition"
@@ -617,10 +636,11 @@ body, html {
     <!-- 🔹 Logout Tab -->
 <button 
   class="nav-btn flex items-center px-4 py-3 rounded-lg hover:bg-gray-100 transition"
-  onclick="window.open('chooser.html', '_blank')">
+  onclick="window.location.href='chooser.html'">
   <i class="fas fa-sign-out-alt mr-3 text-indigo-500"></i>
-  Switch App
+  Switch Apps
 </button>
+
 
 
 
@@ -1278,6 +1298,10 @@ function toggleChart(id) {
 </div>
 
   <div id="toast-message" class="toast"></div>
+  
+</div>
+  
+  
   <script>
    document.getElementById("openSidebar").addEventListener("click", () => {
     document.getElementById("sidebar").classList.remove("-translate-x-full");
@@ -1294,6 +1318,32 @@ function toggleChart(id) {
     appId: "1:70670384552:web:8920a6a539e1f8fca1319d",
     measurementId: "G-5LJKY55SNF"
    };
+   
+       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 🔒 Protect the page
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html"); // redirect instantly
+  } else {
+    document.getElementById("app").style.display = "block"; // show only if logged in
+  }
+});
+
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html");
+  } else {
+    document.getElementById("app").style.display = "block";
+    // ✅ Show logged-in email
+    const emailEl = document.getElementById("userEmail");
+    if (emailEl) {
+      emailEl.textContent = `(${user.email})`;
+    }
+  }
+});
+
    firebase.initializeApp(firebaseConfig);
    const db = firebase.firestore();
    let tickets = [];
