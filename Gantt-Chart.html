@@ -1044,6 +1044,18 @@ gantt.config.redo = true;
   50%, 100% { opacity: 0; }
 }
 
+/* Bold for Summary, Task, Milestone (top-level only) */
+.gantt_grid_data .is-top-row .gantt_tree_content {
+  font-style: normal;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Normal for subtasks */
+.gantt_grid_data .is-sub-row .gantt_tree_content {
+  font-weight: 400;
+  color: #374151;
+}
 
 
 </style>
@@ -2959,6 +2971,11 @@ gantt.templates.grid_row_class = function(start, end, task){
   return (task.$level === 0) ? "is-top-row" : "is-sub-row";
 };
 
+
+gantt.templates.grid_row_class = function(start, end, task){
+  // Top-level tasks (level 0) = bold
+  return (task.$level === 0) ? "is-top-row" : "is-sub-row";
+};
 
 
 
