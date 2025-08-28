@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diagram App</title>
@@ -70,9 +72,14 @@
   </style>
 </head>
 <body>
+
   <!-- Navbar -->
   <header>
     <h1>Diagram Workspace (draw.io)</h1>
+		  <!-- Logged-in User Email -->
+<span id="userEmail" 
+      class="ml-3 px-4 py-2 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700 shadow">
+</span>
     <button class="logout-btn" onclick="window.location.href='chooser.html'">
       Switch Apps
     </button>
@@ -82,5 +89,52 @@
   <div class="iframe-container">
     <iframe src="https://tushsoni.github.io/Diagram/src/main/webapp/"></iframe>
   </div>
+  
+
+  
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZFm9WXz_LABJa__yzKcFFwc2fOM4_1Kk",
+    authDomain: "user-story-pro.firebaseapp.com",
+    projectId: "user-story-pro",
+    storageBucket: "user-story-pro.firebasestorage.app",
+    messagingSenderId: "70670384552",
+    appId: "1:70670384552:web:8920a6a539e1f8fca1319d",
+    measurementId: "G-5LJKY55SNF"
+  };
+
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // 🔒 Protect the page + show email
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.replace("index.html");
+    } else {
+      const emailEl = document.getElementById("userEmail");
+      if (emailEl) {
+        emailEl.textContent = user.email; // 👈 This will now display
+      }
+    }
+  });
+  
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html"); // redirect instantly
+  } else {
+    // ✅ Show logged-in email in header
+    const emailEl = document.getElementById("userEmail");
+    if (emailEl) {
+      emailEl.textContent = user.email;
+    }
+  }
+});
+
+
+</script>  
+
 </body>
 </html>
