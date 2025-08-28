@@ -1005,14 +1005,23 @@ gantt.config.redo = true;
  <!-- Second bar: grouped categories -->
 <div id="actionbar" class="bar bar-categories">
   <!-- Details -->
-  <div class="group">
-    <div class="group-title">Create</div>
-    <div class="group-row">
-      <button class="tb-btn btn-details" onclick="addTask()"><i class="ri-task-line"></i> Task</button>
-      <button class="tb-btn btn-details" onclick="addSummary()"><i class="ri-folder-2-line"></i> Summary</button>
-      <button class="tb-btn btn-details" onclick="addMilestone()"><i class="ri-flag-line"></i> Milestone</button>
-    </div>
+<div class="group">
+  <div class="group-title">Create</div>
+  <div class="group-row">
+    <button class="tb-btn btn-details" onclick="newProjectFromScratch()">
+      <i class="ri-file-2-line"></i> New
+    </button>
+    <button class="tb-btn btn-details" onclick="addTask()">
+      <i class="ri-task-line"></i> Task
+    </button>
+    <button class="tb-btn btn-details" onclick="addSummary()">
+      <i class="ri-folder-2-line"></i> Summary
+    </button>
+    <button class="tb-btn btn-details" onclick="addMilestone()">
+      <i class="ri-flag-line"></i> Milestone
+    </button>
   </div>
+</div>
 
   <!-- Filter -->
   <div class="group">
@@ -1592,6 +1601,11 @@ function openModal(task){
   modal.style.display = "flex"; backdrop.style.display="block";
 }
 function closeModal(){ modal.style.display="none"; backdrop.style.display="none"; modalTaskId=null; }
+
+
+window.currentTaskId = null;
+
+
 function saveModal() {
   const id = window.currentTaskId;
   let task = id ? gantt.getTask(id) : null;
@@ -1666,23 +1680,46 @@ function addSubtask(parentId){
 function deleteTask(id){ if(confirm("Delete task and its subtasks?")) gantt.deleteTask(id); }
 
 /* ---------- Save / Load ---------- */
-function save(){
-  const data = { data:[], links:[] };
-  gantt.eachTask(t => data.data.push({
-    id:t.id, text:t.text, start_date:gantt.templates.xml_format(t.start_date),
-    end_date:gantt.templates.xml_format(t.end_date),
-    type:t.type, parent:t.parent, status:t.status, priority:t.priority,
-    assigned:t.assigned, progress:t.progress
-  }));
-  gantt.getLinks().forEach(l => data.links.push(l));
-  localStorage.setItem("pro_gantt_data", JSON.stringify(data));
-  alert("Saved to browser storage.");
+function saveModal() {
+  let task = modalTaskId ? gantt.getTask(modalTaskId) : null;
+
+  if (task) {
+    // Update existing
+    task.text = document.getElementById("f_text").value || "";
+    task.assigned = document.getElementById("f_assigned").value || "";
+    task.status = document.getElementById("f_status").value || "Not Started";
+    task.priority = document.getElementById("f_priority").value || "Medium";
+    task.type = document.getElementById("f_type").value || "";
+    task.progress = (parseInt(document.getElementById("f_progress").value, 10) || 0) / 100;
+
+    const sd = document.getElementById("f_start").value;
+    const ed = document.getElementById("f_end").value;
+    task.start_date = sd ? new Date(sd) : null;
+    task.end_date = ed ? new Date(ed) : null;
+
+    gantt.updateTask(task.id);
+  } else {
+    // New task
+    const newTask = {
+      id: Date.now(),
+      text: document.getElementById("f_text").value || "",
+      assigned: document.getElementById("f_assigned").value || "",
+      status: document.getElementById("f_status").value || "Not Started",
+      priority: document.getElementById("f_priority").value || "Medium",
+      type: document.getElementById("f_type").value || "",
+      progress: (parseInt(document.getElementById("f_progress").value, 10) || 0) / 100,
+      start_date: document.getElementById("f_start").value ? new Date(document.getElementById("f_start").value) : null,
+      end_date: document.getElementById("f_end").value ? new Date(document.getElementById("f_end").value) : null,
+      parent: 0
+    };
+    gantt.addTask(newTask);
+  }
+
+  gantt.render();
+  populateBoard();
+  closeModal();
 }
-function load(){
-  const raw = localStorage.getItem("pro_gantt_data");
-  if(!raw){ alert("No saved data found."); return; }
-  gantt.clearAll(); gantt.parse(JSON.parse(raw));
-}
+
 
 /* ---------- Seed data ---------- */
 const seed = {
@@ -2175,21 +2212,26 @@ function makeKanbanCard(t, isParent){
   return card;
 }
 
+let currentEditingTaskId = null;
+
+
 // ---------- Open details (uses your existing modal) ----------
-function openTaskDetails(id){
-  // ⛔ Block modal when Board view is visible
+function openTaskDetails(id) {
   const board = document.getElementById("boardView");
   if (board && board.style.display === "block") return;
 
   const t = gantt.getTask(id);
-  if(!t) return;
+  if (!t) return;
+
+  // 🔑 Tell saveModal which task is being edited
+  window.currentTaskId = id;
 
   document.getElementById("f_text").value = t.text || "";
   document.getElementById("f_assigned").value = t.assigned || "";
   document.getElementById("f_status").value = t.status || "Not Started";
   document.getElementById("f_priority").value = t.priority || "Medium";
   document.getElementById("f_type").value = t.type || "";
-  document.getElementById("f_progress").value = Math.round((t.progress||0)*100);
+  document.getElementById("f_progress").value = Math.round((t.progress || 0) * 100);
 
   const asDate = x => (x instanceof Date) ? x : (x ? new Date(x) : null);
   const sd = asDate(t.start_date), ed = asDate(t.end_date);
@@ -2199,6 +2241,8 @@ function openTaskDetails(id){
   document.getElementById("modalBackdrop").style.display="block";
   document.getElementById("modal").style.display="flex";
 }
+
+
 
 // ---------- Populate Board (Trello ordering) ----------
 // Rule: In each status column -> for each root (parent) that itself or any child matches the column status,
@@ -2608,6 +2652,72 @@ function initBoardDnD(){
       }
     });
   })();
+  
+  
+  // Adjust if you use different localStorage keys
+const STORAGE_KEYS = [
+  "gantt.tasks", "gantt.links", "gantt.state",
+  "board.state", "filters.state", "draft.requirements"
+];
+
+function newProjectFromScratch() {
+  if (!confirm("Start a new project? This will delete ALL tasks, links, and local drafts.")) return;
+
+  // Stop any autosave interval you might have
+  if (window.autoSaveTimer) { clearInterval(window.autoSaveTimer); window.autoSaveTimer = null; }
+
+  // Clear Gantt data (tasks + links)
+  try {
+    gantt.clearAll();
+    gantt.refreshData();
+  } catch (e) {
+    const ids = [];
+    gantt.eachTask(t => ids.push(t.id));
+    ids.sort((a,b)=>b-a).forEach(id => { try { gantt.deleteTask(id); } catch(_){} });
+    (gantt.getLinks?.() || []).forEach(l => { try { gantt.deleteLink(l.id); } catch(_){} });
+  }
+
+  // Seed blank dataset (or comment out to keep absolutely empty)
+  gantt.parse({ data: [], links: [] });
+
+  // Clear persisted storage so old data won’t come back
+  STORAGE_KEYS.forEach(k => localStorage.removeItem(k));
+
+  // Reset Board columns to empty placeholders
+  ["#col-notstarted", "#col-progress", "#col-completed", "#col-hold"].forEach(sel => {
+    const col = document.querySelector(sel);
+    if (!col) return;
+    const wrap = col.querySelector(".kanban-cards") || col;
+    wrap.innerHTML = "";
+    const empty = document.createElement("div");
+    empty.className = "kanban-empty text-sm opacity-70 px-3 py-4 text-center";
+    empty.textContent = "No cards here yet";
+    wrap.appendChild(empty);
+  });
+
+  // Reset any column counters
+  document.querySelectorAll("[data-count]").forEach(el => (el.textContent = "0"));
+
+  // Repaint current view
+  const boardEl = document.getElementById("boardView");
+  if (boardEl && boardEl.style.display === "block") {
+    populateBoard?.();
+  } else {
+    gantt.render();
+  }
+
+  // Optional: restart autosave
+  // window.autoSaveTimer = setInterval(saveAll, 5000);
+}
+
+// Optional: Ctrl/Cmd + N shortcut
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") {
+    e.preventDefault();
+    newProjectFromScratch();
+  }
+});
+
 
 
 /* Keep overlay synced */
