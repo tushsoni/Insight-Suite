@@ -39,6 +39,9 @@
   </style>
 </head>
 <body class="min-h-screen font-sans text-slate-800">
+
+<div id="app" style="display:none;">
+
   <!-- Toolbar -->
   <header id="toolbar" class="sticky top-0 z-50 bg-white/80 glass shadow-soft">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -57,6 +60,11 @@
                bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow">
     AI Assistant
   </span>
+  <!-- Logged-in User Email -->
+<span id="userEmail" 
+      class="ml-3 px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700 shadow">
+</span>
+
 </div>
   <div class="text-xs text-slate-500">AI Driven – Modern, printable, export-ready</div>
 </div>
@@ -220,6 +228,51 @@
       </div>
     </li>
   </template>
+  
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDZFm9WXz_LABJa__yzKcFFwc2fOM4_1Kk",
+      authDomain: "user-story-pro.firebaseapp.com",
+      projectId: "user-story-pro",
+      storageBucket: "user-story-pro.firebasestorage.app",
+      messagingSenderId: "70670384552",
+      appId: "1:70670384552:web:8920a6a539e1f8fca1319d",
+      measurementId: "G-5LJKY55SNF"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 🔒 Protect the page
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html"); // redirect instantly
+  } else {
+    document.getElementById("app").style.display = "block"; // show only if logged in
+  }
+});
+
+
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html");
+  } else {
+    document.getElementById("app").style.display = "block";
+    // ✅ Show logged-in email
+    const emailEl = document.getElementById("userEmail");
+    if (emailEl) {
+      emailEl.textContent = `(${user.email})`;
+    }
+  }
+});
+
+
+  </script>
 
   <script>
   
