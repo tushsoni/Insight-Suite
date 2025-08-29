@@ -14,11 +14,21 @@
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
+<script>
+  tailwind.config = { darkMode: 'class' } // ensures dark mode never auto-activates
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+
 
 <style>
 :root {
-  --btn: #4f46e5;
-  --btn-h: #008000;
+  --btn: #e54676;
+  --btn-c: #e54676;
+  --btn-f: #ef4444;
+  --btn-e: #008000;
+  --btn-h: #ef4444;
   --danger: #ef4444;
   --chip: #eef2f7;
   --grid: #f9fafb;
@@ -80,6 +90,7 @@
 .btn-details{
   background: var(--btn-details);
   color:#fff;
+  border: 1px solid rgba(2,132,199,.25);
 }
 .btn-details:hover{ background: var(--btn-details-h); }
 
@@ -209,7 +220,40 @@ html, body {
   font-weight: 800;
   margin-right: 8px;
 }
-.tb-btn {
+
+.tb-btn-c {
+  background: var(--btn);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  transition: 0.15s transform, 0.15s background;
+}
+
+.tb-btn-f {
+  background: var(--btn);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  transition: 0.15s transform, 0.15s background;
+}
+
+.tb-btn-e {
   background: var(--btn);
   border: none;
   color: #fff;
@@ -692,7 +736,7 @@ gantt.config.redo = true;
   font-weight: 600;
   border-radius: 999px;              /* full rounded pill */
   background: #e0e7ff;               /* soft indigo/blue background */
-  color: #008000;                    /* indigo text */
+  color: #008000;                    /* Green text */
   display: inline-block;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06); /* soft shadow */
 }
@@ -1058,6 +1102,122 @@ gantt.config.redo = true;
 }
 
 
+/* Label */
+.project-label{
+  font: 600 13px/1.2 system-ui,-apple-system,Segoe UI,Roboto;
+  color:#374151; /* zinc-700 */
+  margin-right:8px;
+}
+
+/* Wrapper gives us a custom chevron and consistent spacing */
+.select-wrap{
+  position:relative;
+  display:inline-block;
+}
+
+/* The down arrow (chevron) */
+.select-wrap::after{
+  content:"";
+  position:absolute;
+  right:12px;
+  top:50%;
+  width:10px; height:10px;
+  transform:translateY(-50%) rotate(45deg);
+  border-right:2px solid #6b7280;  /* zinc-500 */
+  border-bottom:2px solid #6b7280;
+  pointer-events:none;
+  opacity:.85;
+}
+
+/* The select itself */
+.project-select{
+  width: 280px;                 /* adjust to taste */
+  padding: 10px 36px 10px 12px; /* room for chevron on right */
+  font: 500 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto;
+  color:#111827;                /* zinc-900 */
+  background:#fff;
+  border:1px solid #d1d5db;     /* zinc-300 */
+  border-radius:10px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+  transition: border .15s ease, box-shadow .15s ease, background .15s ease;
+  cursor:pointer;
+
+  /* remove native arrows for consistent look */
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  appearance:none;
+
+  /* make the dropdown list font match */
+  background-clip: padding-box;
+}
+
+/* Hover / focus states */
+.project-select:hover{
+  border-color:#9ca3af;         /* zinc-400 */
+}
+.project-select:focus{
+  outline:none;
+  border-color:#6366f1;         /* indigo-500 */
+  box-shadow:0 0 0 3px #e0e7ff; /* indigo-100 focus ring */
+}
+
+/* Disabled style (if you ever disable it) */
+.project-select:disabled{
+  color:#9ca3af;
+  background:#f9fafb;
+  cursor:not-allowed;
+}
+
+/* High-contrast mode / Windows */
+@media (prefers-contrast: more){
+  .project-select{ border-width:2px; }
+}
+
+/* Optional: compact size variant */
+.project-select.is-compact{
+  width:220px;
+  padding:8px 32px 8px 10px;
+  border-radius:8px;
+}
+
+
+/* Custom Select (closed + open) */
+.cs-wrap{ position:relative; display:inline-block; font:500 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto; }
+.cs-btn{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  min-width:280px; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px;
+  background:#fff; color:#111827; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.04);
+  transition:border .15s, box-shadow .15s;
+}
+.cs-btn:hover{ border-color:#9ca3af; }
+.cs-btn:focus,.cs-wrap.is-open .cs-btn{ outline:none; border-color:#6366f1; box-shadow:0 0 0 3px #e0e7ff; }
+
+.cs-caret{
+  width:10px; height:10px; transform:rotate(45deg);
+  border-right:2px solid #6b7280; border-bottom:2px solid #6b7280; opacity:.9; flex:0 0 auto;
+}
+
+.cs-list{
+  position:absolute; left:0; right:0; top:calc(100% + 6px);
+  max-height:260px; overflow:auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+  box-shadow:0 16px 40px rgba(2,6,23,.18); padding:6px; z-index:30; display:none;
+}
+.cs-wrap.is-open .cs-list{ display:block; }
+
+.cs-item{
+  padding:10px 12px; border-radius:8px; cursor:pointer; color:#111827; display:flex; align-items:center; gap:8px;
+}
+.cs-item:hover{ background:#f3f4f6; }
+.cs-item.is-active{ background:#eef2ff; color:#3730a3; font-weight:600; }
+.cs-empty{ padding:10px 12px; color:#6b7280; }
+
+@media (prefers-reduced-motion:no-preference){
+  .cs-list{ transition: opacity .15s ease, transform .15s ease; transform: translateY(-4px); opacity: 0; }
+  .cs-wrap.is-open .cs-list{ transform: translateY(0); opacity: 1; }
+}
+
+
+
 </style>
 </head>
 <body>
@@ -1078,6 +1238,8 @@ gantt.config.redo = true;
       <div id="brand-subtitle">From Ideas to Execution with Intelligent Gantt Planning</div>
     </div>
 <div class="help-badge">
+
+
   <i class="ri-information-line"></i> Need Help?
   <span class="badge-blink">NEW</span>
   <div class="help-popover" role="dialog" aria-label="Gantt tips">
@@ -1140,9 +1302,6 @@ gantt.config.redo = true;
 <div class="group">
   <div class="group-title">Create</div>
   <div class="group-row">
-    <button class="tb-btn btn-details" onclick="newProjectFromScratch()">
-      <i class="ri-file-2-line"></i> New Project
-    </button>
 	<button class="tb-btn btn-details" onclick="addSummary()">
       <i class="ri-folder-2-line"></i> Summary
     </button>
@@ -1152,6 +1311,10 @@ gantt.config.redo = true;
     <button class="tb-btn btn-details" onclick="addMilestone()">
       <i class="ri-flag-line"></i> Milestone
     </button>
+	<button id="clearAllBtn"
+  class="rounded-lg px-3 py-2 bg-amber-600 text-white hover:bg-amber-700">
+  Clear All
+</button>
   </div>
 </div>
 
@@ -1176,6 +1339,9 @@ gantt.config.redo = true;
       <button class="tb-btn btn-export" onclick="exportPDF()"><i class="ri-file-pdf-line"></i> PDF</button>
       <button class="tb-btn btn-export" onclick="exportXLSX()"><i class="ri-file-excel-line"></i> XLSX</button>
       <button class="tb-btn btn-export" onclick="exportJSON()"><i class="ri-code-line"></i> Export JSON</button>
+	  <button class="tb-btn btn-export" onclick="saveToFirebase()">
+  <i class="ri-save-3-line"></i> Save to Cloud
+</button>
       <label class="tb-btn btn-export">
         <i class="ri-upload-2-line"></i> Import JSON
         <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none;">
@@ -1183,14 +1349,63 @@ gantt.config.redo = true;
     </div>
   </div>
 
+
   <!-- Project -->
-  <div class="group group-project">
-    <div class="group-title">Project</div>
-    <div class="group-row">
-      <input id="projectName" type="text" placeholder="Enter Project Name..." />
-    </div>
-  </div>
+<!-- Project Switcher -->
+<div class="flex flex-wrap items-center gap-3 mb-3 p-3
+            bg-white rounded-2xl ring-1 ring-zinc-200 shadow-sm">
+
+  <!-- New project field -->
+  <input id="newProjectName"
+         class="px-3 py-2 h-10 w-56 rounded-xl border border-zinc-300 bg-white text-zinc-800
+                placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/30
+                focus:border-transparent"
+         type="text"
+         placeholder="New project name" />
+
+  <button id="addProjectBtn" type="button"
+          class="h-10 px-4 rounded-xl bg-indigo-600 text-white hover:opacity-95
+                 active:scale-[.98] transition shadow-sm shrink-0">
+    + Add Project
+  </button>
+
+  <!-- Current project selector -->
+<label for="projectSelect" class="project-label">Project:</label>
+
+<div class="select-wrap">
+  <select id="projectSelect" class="project-select">
+    <!-- your options get filled here -->
+  </select>
 </div>
+
+
+
+  <!-- (Optional) keep your text field in sync if you already had one -->
+  <input id="projectName"
+         class="px-3 py-2 h-10 w-56 rounded-xl border border-zinc-300 bg-white text-zinc-800
+                placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/30
+                focus:border-transparent"
+         type="text"
+         placeholder="Current project name"
+         value="Untitled Project" />
+
+  <button id="deleteProjectBtn" type="button"
+          class="h-10 px-4 rounded-xl bg-rose-600 text-white hover:opacity-95
+                 active:scale-[.98] transition shadow-sm shrink-0"
+          title="Delete selected project">
+    Delete Project
+  </button>
+
+  <button class="h-10 px-4 rounded-xl bg-indigo-600 text-white hover:opacity-95
+                 active:scale-[.98] transition shadow-sm shrink-0"
+          onclick="saveToFirebase()">
+    <i class="ri-save-3-line"></i> Save to Cloud
+  </button>
+</div>
+
+
+
+
 
 
 
@@ -1332,13 +1547,14 @@ gantt.config.redo = true;
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDZFm9WXz_LABJa__yzKcFFwc2fOM4_1Kk",
     authDomain: "user-story-pro.firebaseapp.com",
     projectId: "user-story-pro",
-    storageBucket: "user-story-pro.appspot.com", // optional: typical bucket domain
+    storageBucket: "user-story-pro.appspot.com",
     messagingSenderId: "70670384552",
     appId: "1:70670384552:web:8920a6a539e1f8fca1319d",
     measurementId: "G-5LJKY55SNF"
@@ -1346,24 +1562,81 @@ gantt.config.redo = true;
 
   if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db   = firebase.firestore();
 
-  // Run after DOM is ready so #userEmail exists
   document.addEventListener('DOMContentLoaded', () => {
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.replace("index.html");
         return;
       }
-      // Only unhide if the wrapper exists
-      const appEl = document.getElementById("app");
-      if (appEl) appEl.style.display = "block";
 
-      // ✅ Write email safely
+      // Show UI + email
+      document.getElementById("app")?.style && (document.getElementById("app").style.display = "block");
       const emailEl = document.getElementById("userEmail");
       if (emailEl) emailEl.textContent = user.email || "";
+
+      // ✅ set up autosave using UID (this is the ONLY call)
+      setupGanttAutosaveWithUID(user.uid);
+	   loadGanttFromFirestore(user.uid); 
+	   
+	     if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(user.uid);
+
+  // NEW: project picker
+  initProjectUI(user.uid);
+
+      // (Optional) quick test write – safe to keep or remove
+      try {
+        console.log("[FB] Logged in as:", user.uid);
+        const ref = firebase.firestore()
+          .collection("users").doc(user.uid)
+          .collection("projects").doc("debug"); // no double underscore
+        await ref.set({ projectName: "debug", updatedAt: new Date(), data: [{ id: "test1", text: "Hello Firestore" }] }, { merge: true });
+        console.log("[FB] ✅ Wrote document at:", ref.path);
+      } catch (e) {
+        console.error("[FB] ❌ Firestore failed:", e);
+      }
     });
   });
 </script>
+
+
+<script>
+  // Call save on common changes
+  (function wireGanttAutosave(){
+    if (!window.gantt || !window.saveToFirebase) return;
+
+    const save = () => window.saveToFirebase();
+
+    // task CRUD
+    gantt.attachEvent("onAfterTaskAdd",    function(){ save(); return true; });
+    gantt.attachEvent("onAfterTaskUpdate", function(){ save(); return true; });
+    gantt.attachEvent("onAfterTaskDelete", function(){ save(); return true; });
+
+    // drag/move/resize
+    gantt.attachEvent("onTaskDrag", function(){ /* fires continuously */ return true; });
+    gantt.attachEvent("onAfterTaskDrag", function(){ save(); return true; });
+    gantt.attachEvent("onTaskDblClick", function(){ /* your modal may change data */ return true; });
+
+    // link CRUD (if you use dependencies)
+    if (gantt.attachEvent) {
+      gantt.attachEvent("onAfterLinkAdd",    function(){ save(); return true; });
+      gantt.attachEvent("onAfterLinkUpdate", function(){ save(); return true; });
+      gantt.attachEvent("onAfterLinkDelete", function(){ save(); return true; });
+    }
+
+    // inline cell editing
+    gantt.attachEvent("onAfterEditStop", function(){ save(); return true; });
+
+    // any batch updates you might do
+    if (gantt.attachEvent) {
+      gantt.attachEvent("onAfterBatchUpdate", function(){ save(); return true; });
+    }
+
+    // If you have custom helpers (color change, duplicate, etc.), just call window.saveToFirebase() at the end.
+  })();
+</script>
+
   
 <script>
 
@@ -1882,23 +2155,7 @@ function saveModal() {
 }
 
 
-/* ---------- Seed data ---------- */
-const seed = {
-  data:[
-    {id:1, text:"Mobile Number Authentication", type:"project", start_date:"2025-08-19", end_date:"2025-09-08", open:true, status:"In Progress", priority:"High", color:"#4caf50"},
-    {id:2, text:"QA", parent:1, start_date:"2025-08-19", end_date:"2025-08-24", status:"In Progress", priority:"Medium", assigned:"QA Team", progress:0.5, color:"#2196f3"},
-    {id:3, text:"Prod Deployment", parent:1, start_date:"2025-08-25", end_date:"2025-09-01", status:"Not Started", priority:"High", assigned:"DevOps", color:"#ff9800"},
-    {id:4, text:"Stabilization", parent:1, start_date:"2025-09-01", end_date:"2025-09-08", status:"Not Started", priority:"Medium", assigned:"Team", color:"#9c27b0"},
-    {id:5, text:"Backend", type:"project", start_date:"2025-09-01", end_date:"2025-09-25", open:true, status:"Not Started", priority:"Medium", color:"#f44336"},
-    {id:6, text:"API Layer", parent:5, start_date:"2025-09-01", end_date:"2025-09-14", status:"Not Started", assigned:"Arun", color:"#00bcd4"},
-    {id:7, text:"DB Schema", parent:5, start_date:"2025-09-08", end_date:"2025-09-18", status:"Not Started", assigned:"Shreya", color:"#795548"},
-  ],
-  links:[
-    {id:1, source:2, target:3, type:"0"},
-    {id:2, source:3, target:4, type:"0"},
-    {id:3, source:6, target:7, type:"0"}
-  ]
-};
+
 
 
 function exportPNG(){
@@ -2167,7 +2424,6 @@ gantt.config.grid_edit = true;  // enable inline editing in grid
 /* ---------- Init ---------- */
 setScaleConfig("day");
 gantt.init("gantt_here");
-gantt.parse(seed);
 
 /* ---------- Ensure edits persist ---------- */
 gantt.attachEvent("onAfterEditStop", function(state, editor){
@@ -2977,6 +3233,456 @@ gantt.templates.grid_row_class = function(start, end, task){
   return (task.$level === 0) ? "is-top-row" : "is-sub-row";
 };
 
+console.log("[FB] Project:", firebase.app().options.projectId);
+window.saveToFirebase = (window.saveToFirebase || (()=>{}));
+const _save = window.saveToFirebase;
+window.saveToFirebase = async function(){
+  const ref = getProjectDocRef();
+  console.log("[FB] Writing to:", ref && ref.path);
+  try { await _save(); console.log("[FB] ✅ Saved"); }
+  catch(e){ console.error("[FB] ❌ Save failed", e); }
+};
+
+
+  // Save Gantt data to: users/<UID>/projects/<ProjectName>
+  function setupGanttAutosaveWithUID(uid) {
+    const db  = firebase.firestore();
+    const d2s = gantt.date.date_to_str("%Y-%m-%d");
+
+function getProjectName() {
+  const sel = document.getElementById("projectSelect");
+  const fromSelect = (sel && sel.value || "").trim();
+  if (fromSelect) return fromSelect;
+
+  const inp = document.getElementById("projectName");
+  const fromInput = (inp && inp.value || "").trim();
+  return fromInput || "Untitled Project";
+}
+
+
+    function buildTasksJSON() {
+      const data = [];
+      gantt.eachTask(t => {
+        data.push({
+          id: t.id,
+          text: t.text,
+          start_date: d2s(t.start_date),
+          end_date: d2s(t.end_date),
+          status: t.status || "",
+          priority: t.priority || "",
+          assigned: t.assigned || "",
+          progress: t.progress || 0,
+          parent: t.parent || 0,
+          color: t.color || ""
+        });
+      });
+      return { data };
+    }
+
+    async function saveNow() {
+      const ref = db.collection("users")
+                    .doc(uid)
+                    .collection("projects")
+                    .doc(getProjectName());
+      await ref.set({
+        projectName: getProjectName(),
+        updatedAt: new Date(),
+        data: buildTasksJSON().data
+      }, { merge: true });
+      console.log("[FB] ✅ Saved project at:", ref.path);
+    }
+
+    // Debounce
+    let t;
+    window.saveToFirebase = function() {
+      clearTimeout(t);
+      t = setTimeout(saveNow, 600);
+    };
+
+    // Wire events
+    const save = () => window.saveToFirebase();
+    gantt.attachEvent("onAfterTaskAdd",    save);
+    gantt.attachEvent("onAfterTaskUpdate", save);
+    gantt.attachEvent("onAfterTaskDelete", save);
+    gantt.attachEvent("onAfterTaskDrag",   save);
+    gantt.attachEvent("onAfterEditStop",   save);
+    gantt.attachEvent("onAfterLinkAdd",    save);
+    gantt.attachEvent("onAfterLinkUpdate", save);
+    gantt.attachEvent("onAfterLinkDelete", save);
+
+    // Save when project name changes
+    const pn = document.getElementById("projectName");
+    pn && pn.addEventListener("input", save);
+  }
+  
+  (function initAutosaveOnceAuthReady(){
+    const auth = firebase.auth();
+    const u = auth.currentUser;
+    if (u) {
+      setupGanttAutosaveWithUID(u.uid);
+      return;
+    }
+    auth.onAuthStateChanged(function(user){
+      if (user) {
+        setupGanttAutosaveWithUID(user.uid);
+      }
+    });
+  })();
+  
+   function loadGanttFromFirestore(uid){
+    const db = firebase.firestore();
+
+    function getProjectName(){
+      const v = (document.getElementById("projectName")?.value || "").trim();
+      return v || "Untitled Project";
+    }
+
+    async function load(){
+      const ref = db.collection("users")
+                    .doc(uid)
+                    .collection("projects")
+                    .doc(getProjectName());
+      try{
+        const snap = await ref.get();
+        if (snap.exists && Array.isArray(snap.data().data)) {
+          // parse back into gantt
+          gantt.clearAll();
+          gantt.parse({ data: snap.data().data });
+          gantt.render();
+          if (typeof window.populateBoard === "function") populateBoard();
+          console.log("[FB] ✅ Loaded project from:", ref.path);
+        } else {
+          console.log("[FB] ℹ️ No saved doc yet at:", ref.path);
+        }
+      } catch(e){
+        console.error("[FB] ❌ Load failed:", e);
+      }
+    }
+
+    // load once now
+    load();
+
+    // also reload when project name changes (switches docs)
+    const pn = document.getElementById("projectName");
+    pn && pn.addEventListener("input", () => load());
+  }
+  
+  
+   // --- Project Picker wiring ---
+function initProjectUI(uid) {
+  const db = firebase.firestore();
+  const sel   = document.getElementById("projectSelect");
+  const inp   = document.getElementById("projectName");      // optional legacy input
+  const newInp= document.getElementById("newProjectName");
+  const addBtn= document.getElementById("addProjectBtn");
+  const delBtn= document.getElementById("deleteProjectBtn"); // ← NEW
+
+  async function listProjects() {
+    const snap = await db.collection("users").doc(uid).collection("projects").get();
+    const names = snap.docs.map(d => d.id).filter(n => !!n && n !== "debug");
+    if (names.length === 0) names.push("Untitled Project");
+    return Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
+  }
+
+  function populateSelect(names, current) {
+    sel.innerHTML = "";
+    names.forEach(n => {
+      const opt = document.createElement("option");
+      opt.value = opt.textContent = n;
+      sel.appendChild(opt);
+    });
+    const want = current || (inp?.value?.trim()) || sel.value || "Untitled Project";
+    sel.value = names.includes(want) ? want : names[0];
+    if (inp) inp.value = sel.value;
+  }
+
+  async function refreshProjects(keepCurrent = true) {
+    const names = await listProjects();
+    populateSelect(names, keepCurrent ? sel.value : undefined);
+    // enable/disable delete based on availability
+    if (delBtn) delBtn.disabled = !sel.value;
+  }
+
+async function addProject() {
+  const name = (newInp?.value || "").trim();
+  if (!name) { alert("Please enter a project name."); return; }
+
+  const ref = db.collection("users").doc(uid)
+                .collection("projects").doc(name);
+
+  // 1) Write a clean baseline (NO merge)
+  await ref.set({
+    projectName: name,
+    createdAt: firebase.firestore.FieldValue
+      ? firebase.firestore.FieldValue.serverTimestamp()
+      : new Date(),
+    // keep your schema keys but empty
+    gantt: { tasks: [], links: [] },
+    notes: ""
+  }, { merge: false }); // <-- force fresh doc
+
+  // 2) Update UI selection
+  newInp.value = "";
+  await refreshProjects(false);
+  sel.value = name;
+  if (inp) inp.value = name;
+  window.currentProject = name;
+
+  // 3) Clear current UI so user sees a blank project immediately
+  if (window.gantt && typeof gantt.clearAll === "function") {
+    gantt.clearAll();
+  }
+  const notesEl = document.getElementById("notes");
+  if (notesEl) notesEl.value = "";
+
+  // optional: clear any local buffers you use
+  try {
+    localStorage.removeItem("gantt_unsaved");
+    localStorage.removeItem("last_open_project");
+  } catch {}
+
+  // 4) Do NOT reload previous data; either skip or load the new (empty) doc
+  // If your loader accepts project name, prefer calling that:
+  if (typeof loadGanttFromFirestore === "function") {
+    // Load the just-created (empty) project so downstream state aligns
+    await loadGanttFromFirestore(uid, name); // if your function supports (uid, project)
+  }
+
+  // 5) (Optional) Immediately persist the blank baseline through your saver
+  if (typeof window.saveToFirebase === "function") {
+    await window.saveToFirebase({ uid, project: name });
+  }
+}
+
+async function saveToFirebase(payload = {}) {
+  const uid = payload.uid || currentUID;
+  const project = payload.project || (window.currentProject || projectSelect.value);
+  if (!uid || !project) throw new Error('Missing uid/project');
+
+  const ref = db.collection('users').doc(uid)
+                .collection('projects').doc(project);
+
+  // collect the CURRENT blank/edited state from UI
+  const tasks = window.gantt ? gantt.serialize().data || [] : [];
+  const links = window.gantt ? gantt.serialize().links || [] : [];
+  const notesEl = document.getElementById('notes');
+
+  await ref.set({
+    gantt: { tasks, links },
+    notes: notesEl ? notesEl.value : '',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+
+  // 🔴 NEW: delete project
+  async function deleteProject() {
+    const name = sel.value?.trim();
+    if (!name) { alert("Select a project first."); return; }
+
+    const ok = confirm(`Delete project "${name}"? This cannot be undone.`);
+    if (!ok) return;
+
+    const ref = db.collection("users").doc(uid).collection("projects").doc(name);
+    try {
+      await ref.delete();
+      // refresh list
+      await refreshProjects(false);
+      // pick next project or recreate Untitled if none left
+      let next = sel.value;
+      if (!next) {
+        next = "Untitled Project";
+        await db.collection("users").doc(uid).collection("projects")
+          .doc(next)
+          .set({ projectName: next, updatedAt: new Date(), data: [] }, { merge: true });
+        await refreshProjects(false);
+        sel.value = next;
+      }
+      if (inp) inp.value = sel.value || next;
+
+      // load the newly selected project (or empty)
+      if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(uid);
+      // optional: clear chart if you prefer a blank screen when nothing selected
+      // gantt.clearAll(); gantt.render();
+
+      // make sure future edits save to the new selection
+      window.saveToFirebase && window.saveToFirebase();
+      console.log(`[FB] 🗑️ Deleted project "${name}"`);
+    } catch(e) {
+      console.error("[FB] ❌ Delete failed:", e);
+      alert("Failed to delete project. Check console for details.");
+    }
+  }
+
+  // events
+  addBtn?.addEventListener("click", addProject);
+  delBtn?.addEventListener("click", deleteProject); // ← NEW
+
+  sel.addEventListener("change", () => {
+    if (inp) inp.value = sel.value;
+    if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(uid);
+    window.saveToFirebase && window.saveToFirebase();
+  });
+
+  if (inp) {
+    inp.addEventListener("input", () => {
+      const exists = Array.from(sel.options).some(o => o.value === inp.value);
+      if (!exists && inp.value.trim()) {
+        const temp = document.createElement("option");
+        temp.value = temp.textContent = inp.value.trim();
+        sel.appendChild(temp);
+      }
+      sel.value = inp.value.trim() || "Untitled Project";
+      if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(uid);
+      window.saveToFirebase && window.saveToFirebase();
+    });
+  }
+
+  // initial load
+  refreshProjects().then(() => {
+    if (inp && inp.value) sel.value = inp.value;
+    if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(uid);
+  });
+}
+
+	// Clear All button functionality
+	
+document.getElementById("clearAllBtn")?.addEventListener("click", async (ev) => {
+  const btn = ev.currentTarget;
+  const projectSelect = document.getElementById("projectSelect");
+  const projectName = projectSelect?.value;
+
+  // Get UID safely (don’t rely on outer-scoped uid)
+  const user = firebase.auth().currentUser;
+  const uidSafe = user && user.uid;
+  if (!uidSafe) { alert("You’re not signed in. Please log in again."); return; }
+
+  if (!projectName) { alert("Select a project first."); return; }
+  if (!confirm(`Clear all data from project “${projectName}”? This cannot be undone.`)) return;
+
+  try {
+    btn.disabled = true;
+
+    const ref = db.collection("users").doc(uidSafe)
+                  .collection("projects").doc(projectName);
+
+    // Overwrite with a blank schema (fresh start)
+    await ref.set({
+      projectName,
+      updatedAt: (firebase.firestore.FieldValue &&
+                  firebase.firestore.FieldValue.serverTimestamp)
+                 ? firebase.firestore.FieldValue.serverTimestamp()
+                 : new Date(),
+      gantt: { tasks: [], links: [] },
+      notes: ""
+    }, { merge: false });
+
+    // Clear UI
+    if (window.gantt && typeof gantt.clearAll === "function") gantt.clearAll();
+    const notesEl = document.getElementById("notes");
+    if (notesEl) notesEl.value = "";
+
+    // Optional toast
+    if (typeof showToast === "function") showToast(`🧹 Cleared all data for “${projectName}”`, "info");
+
+    console.log("[FB] ✅ Cleared project:", projectName);
+  } catch (e) {
+    console.error("[FB] ❌ Clear failed:", {
+      name: e?.name, code: e?.code, message: e?.message, stack: e?.stack
+    });
+    // Show the actual reason to you
+    if (typeof showToast === "function") {
+      showToast(`❌ Clear failed: ${e?.message || "See console"}`, "error");
+    } else {
+      alert(`Clear failed: ${e?.message || "See console"}`);
+    }
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+
+(function enhanceProjectSelect(){
+  const native = document.getElementById('projectSelect');
+  if (!native) { console.warn('[CustomSelect] #projectSelect not found'); return; }
+
+  // Hide native (keep it for form/compat)
+  native.style.position = 'absolute';
+  native.style.opacity = '0';
+  native.style.pointerEvents = 'none';
+  native.style.width = '0';
+  native.style.height = '0';
+
+  // Build custom UI
+  const wrap  = document.createElement('div');
+  wrap.className = 'cs-wrap';
+  native.parentNode.insertBefore(wrap, native);
+  wrap.appendChild(native);
+
+  const btn   = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'cs-btn';
+  const label = document.createElement('span');
+  const caret = document.createElement('span');
+  caret.className = 'cs-caret';
+  btn.appendChild(label);
+  btn.appendChild(caret);
+
+  const list  = document.createElement('div');
+  list.className = 'cs-list';
+
+  wrap.appendChild(btn);
+  wrap.appendChild(list);
+
+  function renderList(){
+    list.innerHTML = '';
+    const opts = native.querySelectorAll('option');
+    if (!opts.length){
+      const empty = document.createElement('div');
+      empty.className = 'cs-empty';
+      empty.textContent = 'No projects';
+      list.appendChild(empty);
+      label.textContent = '—';
+      return;
+    }
+    opts.forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'cs-item' + (opt.selected ? ' is-active' : '');
+      item.dataset.value = opt.value;
+      item.textContent = opt.textContent;
+      item.addEventListener('click', () => {
+        // set native value & dispatch change
+        native.value = opt.value;
+        native.dispatchEvent(new Event('change', { bubbles: true }));
+        close();
+      });
+      list.appendChild(item);
+    });
+    // Set label from selected option (or first)
+    const selOpt = native.selectedOptions[0] || native.options[0];
+    label.textContent = selOpt ? selOpt.textContent : '—';
+  }
+
+  function open(){ wrap.classList.add('is-open'); }
+  function close(){ wrap.classList.remove('is-open'); renderList(); }
+  function toggle(){ wrap.classList.contains('is-open') ? close() : open(); }
+
+  btn.addEventListener('click', toggle);
+  document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) close(); });
+  native.addEventListener('change', () => { // keep label in sync for programmatic changes
+    const selOpt = native.selectedOptions[0] || native.options[0];
+    if (selOpt) label.textContent = selOpt.textContent;
+    // highlight active item
+    [...list.children].forEach(n => n.classList.toggle('is-active', n.dataset.value === native.value));
+  });
+
+  // Rebuild when options change (your Firestore onSnapshot repopulates options)
+  const mo = new MutationObserver(() => renderList());
+  mo.observe(native, { childList:true, subtree:true, attributes:false });
+
+  // Initial render
+  renderList();
+})();
 
 
 /* Keep overlay synced */
