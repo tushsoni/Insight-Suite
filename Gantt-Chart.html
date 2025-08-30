@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -47,6 +47,13 @@
   --btn-export:  #334155;   /* slate */
   --btn-export-h:#1f2937;
 
+
+.project-switcher {
+  position: sticky;   /* or fixed, if you want it always pinned */
+  top: 60px;          /* adjust based on your actionbar/header height */
+  z-index: 1000;
+  background: #fff;   /* ensure it doesn’t go transparent */
+}
 
 /* Style parent (summary) tasks in the grid */
 .gantt_task_parent .gantt_tree_content {
@@ -141,8 +148,8 @@ html, body {
 }
 
 #gantt_here {
-  width: 100%;
-  height: calc(100% - 130px);
+  position: relative;
+  z-index: 1 !important;
 }
 
 /* ---------------- Status badges ---------------- */
@@ -746,14 +753,12 @@ gantt.config.redo = true;
 
 /* Switch Apps button */
 #switchAppsBtn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  margin-left: auto;   /* pushes it to the right */
   background: #4f46e5;
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 13px 13px;
+  padding: 10px 14px;
   font-size: 13px;
   font-weight: 600;
   display: flex;
@@ -762,12 +767,15 @@ gantt.config.redo = true;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   transition: background 0.2s, transform 0.2s;
+  z-index: 100000; /* ensures above help popover */
 }
 
 #switchAppsBtn:hover {
   background: #008000;
   transform: translateY(-1px);
 }
+
+
 #brandbar img{ height:56px;
   display: flex;
   justify-content: space-between;
@@ -938,6 +946,19 @@ gantt.config.redo = true;
   z-index: 100;
 }
 
+#header, 
+#brandbar, 
+.help-badge, 
+.help-popover {
+  position: relative;
+  z-index: 999999 !important; /* very high so gantt can't overlap */
+}
+
+/* Keep the popover above everything else */
+.help-popover {
+  z-index: 30000; /* even higher than header */
+}
+
 .help-popover::before {
   content: "";
   position: absolute;
@@ -969,13 +990,15 @@ gantt.config.redo = true;
 
 /* Pill-style help badge */
 .help-badge{
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-block; align-items:center; gap:8px;
   margin-left:1100px; padding:6px 12px; border-radius:999px;
   font-weight:600; font-size:13px; cursor:pointer;
   color:#3730a3; background:#e0e7ff;
   box-shadow:0 2px 6px rgba(0,0,0,.08);
   position:relative; user-select:none;
   transition:background .2s, box-shadow .2s, transform .15s;
+    cursor: pointer;
+  z-index: 1000; /* ensures it stays above headers */
 }
 
 .help-badge:hover{ background:#c7d2fe; box-shadow:0 6px 20px rgba(0,0,0,.12); transform:translateY(-1px); }
@@ -1217,6 +1240,84 @@ gantt.config.redo = true;
 }
 
 
+/* ===== Premium toolbar container ===== */
+#actionbar.uxbar{
+  --ux-bg:#ffffff;
+  --ux-border:#e7e9ee;
+  --ux-shadow:0 6px 24px rgba(16,24,40,.06);
+  --ux-pill:#f6f7fb;
+  display:flex; align-items:flex-start; gap:18px;
+  padding:10px 14px; background:var(--ux-bg);
+  border:1px solid var(--ux-border); border-left:0; border-right:0;
+  box-shadow:var(--ux-shadow); position:relative; z-index:1000;
+  overflow-x:auto; white-space:nowrap; border-radius:12px 12px 0 0;
+}
+
+/* subtle separators between clusters */
+#actionbar .uxsep{
+  width:1px; align-self:stretch; background:linear-gradient(#0000,#eaecef,#0000);
+  opacity:.8;
+}
+
+/* ===== Group ===== */
+#actionbar .uxgroup{ display:flex; flex-direction:column; gap:8px; }
+#actionbar .uxgroup-head{ display:flex; align-items:center; gap:6px; }
+
+/* ===== Badge label (segment) ===== */
+#actionbar .uxbadge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; font-size:12px; font-weight:700; letter-spacing:.2px;
+  border-radius:9999px; color:#111827; background:var(--ux-pill);
+  border:1px solid var(--ux-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+#actionbar .uxbadge i{ font-size:14px; opacity:.8; }
+
+/* themed rings */
+#actionbar .uxbadge--violet{ box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 2px rgba(124,58,237,.12); }
+#actionbar .uxbadge--blue  { box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 2px rgba(37,99,235,.12); }
+#actionbar .uxbadge--green { box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 0 2px rgba(5,150,105,.12); }
+
+/* ===== Row of buttons ===== */
+#actionbar .uxgroup-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ===== Button polish (non-destructive) ===== */
+#actionbar .uxbtn{
+  border-radius:10px !important;
+  padding:9px 12px !important;
+  border:1px solid var(--ux-border) !important;
+  background:#fff !important;
+  color:#1f2937 !important;
+  display:inline-flex; align-items:center; gap:6px;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  box-shadow:0 1px 0 rgba(16,24,40,.02);
+}
+#actionbar .uxbtn i{ opacity:.9; }
+
+/* hover / focus */
+#actionbar .uxbtn:hover{
+  transform: translateY(-1px);
+  box-shadow:0 6px 14px rgba(16,24,40,.08);
+  border-color:#cfd4dd !important;
+}
+
+/* contextual hues (subtle text tint only) */
+#actionbar .btn-details.uxbtn{ color:#6d28d9 !important; }
+#actionbar .btn-filter.uxbtn { color:#2563eb !important; }
+#actionbar .btn-export.uxbtn { color:#047857 !important; }
+
+/* destructive */
+#actionbar .uxbtn--danger{
+  background:#ef4444 !important; color:#fff !important; border-color:#dc2626 !important;
+}
+#actionbar .uxbtn--danger:hover{
+  background:#dc2626 !important; border-color:#b91c1c !important;
+}
+
+/* mobile friendliness: allow horizontal scroll but hide bar ugliness */
+#actionbar.uxbar::-webkit-scrollbar{ height:8px }
+#actionbar.uxbar::-webkit-scrollbar-thumb{ background:#e3e6ee; border-radius:9999px }
+
 
 </style>
 </head>
@@ -1282,72 +1383,124 @@ gantt.config.redo = true;
           <span class="dot"></span>
           <div class="txt"><b>To duplicate a Task, Subtask, Summary, or Milestone,</b> open it and click <em>Duplicate</em>, or simply right-click and choose <em>Duplicate.</div>
         </li>
+		
+<li>
+  <span class="dot"></span>
+  <div class="txt"><b>Click on Add Project</b> to start working on a new project.</div>
+</li>
+
+<li>
+  <span class="dot"></span>
+  <div class="txt"><b>Your data is auto-saved</b> whenever you add, delete, or update a task.  
+  For extra security, use <b>Save to Cloud</b> to ensure nothing is lost.</div>
+</li>
+
+<li>
+  <span class="dot"></span>
+  <div class="txt"><b>Click on Delete All Projects</b> to permanently remove all existing projects.</div>
+</li>
+
+		
       </ul>
     </div>
   </div>
 </div>
-
+  <button id="switchAppsBtn" onclick="window.location.href='index.html'">
+    <i class="ri-save-3-line"></i> Switch Apps
+  </button>
+</div>
 </div>
 </div>
   </div>
-</div>
 
 
 
 
 
  <!-- Second bar: grouped categories -->
-<div id="actionbar" class="bar bar-categories">
-  <!-- Details -->
-<div class="group">
-  <div class="group-title">Create</div>
-  <div class="group-row">
-	<button class="tb-btn btn-details" onclick="addSummary()">
-      <i class="ri-folder-2-line"></i> Summary
-    </button>
-    <button class="tb-btn btn-details" onclick="addTask()">
-      <i class="ri-task-line"></i> Task
-    </button>
-    <button class="tb-btn btn-details" onclick="addMilestone()">
-      <i class="ri-flag-line"></i> Milestone
-    </button>
-	<button id="clearAllBtn"
-  class="rounded-lg px-3 py-2 bg-amber-600 text-white hover:bg-amber-700">
-  Clear All
-</button>
-  </div>
-</div>
-
-  <!-- Filter -->
-  <div class="group">
-    <div class="group-title">Filter</div>
-    <div class="group-row">
-      <button class="tb-btn btn-filter" id="toggleBoardBtn" onclick="toggleBoard()"><i class="ri-layout-board-line"></i> Board</button>
-      <button class="tb-btn btn-filter" onclick="setDayView()"><i class="ri-calendar-line"></i> Day</button>
-      <button class="tb-btn btn-filter" onclick="setWeekView()"><i class="ri-calendar-event-line"></i> Week</button>
-      <button class="tb-btn btn-filter" onclick="gantt.showDate(new Date())"><i class="ri-today-line"></i> Today</button>
-      <button class="tb-btn btn-filter" onclick="gantt.eachTask(t=>gantt.open(t.id))"><i class="ri-expand-up-down-line"></i> Expand</button>
-      <button class="tb-btn btn-filter" onclick="gantt.eachTask(t=>gantt.close(t.id))"><i class="ri-contract-up-down-line"></i> Collapse</button>
+ 
+ <div class="project-switcher flex flex-wrap items-center gap-3 mb-3 p-3
+            bg-white rounded-2xl ring-1 ring-zinc-200 shadow-sm">
+			
+<div id="actionbar" class="uxbar">
+  <!-- Create -->
+  <div class="uxgroup">
+    <div class="uxgroup-head">
+      <span class="uxbadge uxbadge--violet">
+        <i class="ri-sparkling-2-line"></i> Create
+      </span>
+    </div>
+    <div class="uxgroup-row">
+      <button class="tb-btn btn-details uxbtn" onclick="addSummary()">
+        <i class="ri-folder-2-line"></i> Summary
+      </button>
+      <button class="tb-btn btn-details uxbtn" onclick="addTask()">
+        <i class="ri-task-line"></i> Task
+      </button>
+      <button class="tb-btn btn-details uxbtn" onclick="addMilestone()">
+        <i class="ri-flag-line"></i> Milestone
+      </button>
     </div>
   </div>
 
-  <!-- Export / Import -->
-  <div class="group">
-    <div class="group-title">Export / Import</div>
-    <div class="group-row">
-      <button class="tb-btn btn-export" onclick="exportPNG()"><i class="ri-image-line"></i> PNG</button>
-      <button class="tb-btn btn-export" onclick="exportPDF()"><i class="ri-file-pdf-line"></i> PDF</button>
-      <button class="tb-btn btn-export" onclick="exportXLSX()"><i class="ri-file-excel-line"></i> XLSX</button>
-      <button class="tb-btn btn-export" onclick="exportJSON()"><i class="ri-code-line"></i> Export JSON</button>
-	  <button class="tb-btn btn-export" onclick="saveToFirebase()">
-  <i class="ri-save-3-line"></i> Save to Cloud
-</button>
-      <label class="tb-btn btn-export">
-        <i class="ri-upload-2-line"></i> Import JSON
+  <!-- Filter -->
+  <div class="uxsep"></div>
+  <div class="uxgroup">
+    <div class="uxgroup-head">
+      <span class="uxbadge uxbadge--blue">
+        <i class="ri-filter-3-line"></i> Filter
+      </span>
+    </div>
+    <div class="uxgroup-row">
+      <button class="tb-btn btn-filter uxbtn" id="toggleBoardBtn" onclick="toggleBoard()">
+        <i class="ri-folder-2-line"></i> Board
+      </button>
+      <button class="tb-btn btn-filter uxbtn" onclick="setDayView()">
+        <i class="ri-calendar-line"></i> Day
+      </button>
+      <button class="tb-btn btn-filter uxbtn" onclick="setWeekView()">
+        <i class="ri-calendar-event-line"></i> Week
+      </button>
+      <button class="tb-btn btn-filter uxbtn" onclick="gantt.showDate(new Date())">
+        <i class="ri-today-line"></i> Today
+      </button>
+      <button class="tb-btn btn-filter uxbtn" onclick="gantt.eachTask(t=>gantt.open(t.id))">
+        <i class="ri-expand-up-down-line"></i> Expand
+      </button>
+      <button class="tb-btn btn-filter uxbtn" onclick="gantt.eachTask(t=>gantt.close(t.id))">
+        <i class="ri-contract-up-down-line"></i> Collapse
+      </button>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div class="uxsep"></div>
+  <div class="uxgroup">
+    <div class="uxgroup-head">
+      <span class="uxbadge uxbadge--green">
+        <i class="ri-share-forward-line"></i> Export / Import
+      </span>
+    </div>
+    <div class="uxgroup-row">
+      <button class="tb-btn btn-export uxbtn" onclick="exportPNG()">
+        <i class="ri-image-line"></i> PNG
+      </button>
+      <button class="tb-btn btn-export uxbtn" onclick="exportPDF()">
+        <i class="ri-file-pdf-line"></i> PDF
+      </button>
+      <button class="tb-btn btn-export uxbtn" onclick="exportXLSX()">
+        <i class="ri-file-excel-line"></i> XLSX
+      </button>
+      <button class="tb-btn btn-export uxbtn" onclick="exportJSON()">
+        <i class="ri-code-line"></i> JSON
+      </button>
+      <label class="tb-btn btn-export uxbtn">
+        <i class="ri-upload-2-line"></i> Import
         <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none;">
       </label>
     </div>
   </div>
+</div>
 
 
   <!-- Project -->
@@ -1370,8 +1523,9 @@ gantt.config.redo = true;
   </button>
 
   <!-- Current project selector -->
-<label for="projectSelect" class="project-label">Project:</label>
 
+
+<label for="projectSelect" class="project-label">Project:</label>
 <div class="select-wrap">
   <select id="projectSelect" class="project-select">
     <!-- your options get filled here -->
@@ -1381,26 +1535,36 @@ gantt.config.redo = true;
 
 
   <!-- (Optional) keep your text field in sync if you already had one -->
-  <input id="projectName"
-         class="px-3 py-2 h-10 w-56 rounded-xl border border-zinc-300 bg-white text-zinc-800
-                placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-indigo-400/30
-                focus:border-transparent"
-         type="text"
-         placeholder="Current project name"
-         value="Untitled Project" />
+<input id="projectName"
+       class="px-3 py-2 h-10 w-56 rounded-xl border bg-gray-100 text-gray-500 cursor-not-allowed"
+       type="text"
+       placeholder="Current project name"
+       value="Untitled Project"
+       disabled />
 
+
+<!--
   <button id="deleteProjectBtn" type="button"
           class="h-10 px-4 rounded-xl bg-rose-600 text-white hover:opacity-95
                  active:scale-[.98] transition shadow-sm shrink-0"
           title="Delete selected project">
     Delete Project
   </button>
+  -->
 
   <button class="h-10 px-4 rounded-xl bg-indigo-600 text-white hover:opacity-95
                  active:scale-[.98] transition shadow-sm shrink-0"
           onclick="saveToFirebase()">
     <i class="ri-save-3-line"></i> Save to Cloud
   </button>
+  
+        <button id="deleteAllProjectsBtn" class="h-10 px-4 rounded-xl bg-red-600 text-white hover:opacity-95
+                 active:scale-[.98] transition shadow-sm shrink-0">
+        <i class="ri-save-3-line"></i> Delete All Projects
+      </button>
+  
+</div>
+
 </div>
 
 
@@ -1412,12 +1576,6 @@ gantt.config.redo = true;
 
 
 
-
-<div class="app-toolbar">
-  <button id="switchAppsBtn" onclick="window.location.href='index.html'">
-    <i class="ri-exchange-line"></i> Switch Apps
-  </button>
-</div>
 
 <div id="gantt_here"></div>
 
@@ -3237,6 +3395,7 @@ console.log("[FB] Project:", firebase.app().options.projectId);
 window.saveToFirebase = (window.saveToFirebase || (()=>{}));
 const _save = window.saveToFirebase;
 window.saveToFirebase = async function(){
+ if (window._suspendAutosave) return;
   const ref = getProjectDocRef();
   console.log("[FB] Writing to:", ref && ref.path);
   try { await _save(); console.log("[FB] ✅ Saved"); }
@@ -3290,6 +3449,8 @@ function getProjectName() {
         data: buildTasksJSON().data
       }, { merge: true });
       console.log("[FB] ✅ Saved project at:", ref.path);
+	      // ✅ Confirmation
+    showToast("✅ Saved to cloud!"); 
     }
 
     // Debounce
@@ -3384,24 +3545,25 @@ function initProjectUI(uid) {
     return Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b));
   }
 
-  function populateSelect(names, current) {
-    sel.innerHTML = "";
-    names.forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = opt.textContent = n;
-      sel.appendChild(opt);
-    });
-    const want = current || (inp?.value?.trim()) || sel.value || "Untitled Project";
-    sel.value = names.includes(want) ? want : names[0];
-    if (inp) inp.value = sel.value;
-  }
+function populateSelect(names, current) {
+  sel.innerHTML = "";
+  names.forEach(n => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = n;
+    sel.appendChild(opt);
+  });
+  const want = current || (inp?.value?.trim()) || sel.value || "Untitled Project";
+  sel.value = names.includes(want) ? want : names[0];
+  if (inp) inp.value = sel.value;
+}
 
-  async function refreshProjects(keepCurrent = true) {
-    const names = await listProjects();
-    populateSelect(names, keepCurrent ? sel.value : undefined);
-    // enable/disable delete based on availability
-    if (delBtn) delBtn.disabled = !sel.value;
-  }
+
+async function refreshProjects(currentProject) {
+  const names = await listProjects();
+  populateSelect(names, currentProject);
+  if (delBtn) delBtn.disabled = !sel.value;
+}
+
 
 async function addProject() {
   const name = (newInp?.value || "").trim();
@@ -3410,109 +3572,137 @@ async function addProject() {
   const ref = db.collection("users").doc(uid)
                 .collection("projects").doc(name);
 
-  // 1) Write a clean baseline (NO merge)
   await ref.set({
     projectName: name,
     createdAt: firebase.firestore.FieldValue
       ? firebase.firestore.FieldValue.serverTimestamp()
       : new Date(),
-    // keep your schema keys but empty
     gantt: { tasks: [], links: [] },
     notes: ""
-  }, { merge: false }); // <-- force fresh doc
+  }, { merge: false });
+  
+  
 
-  // 2) Update UI selection
   newInp.value = "";
-  await refreshProjects(false);
-  sel.value = name;
-  if (inp) inp.value = name;
-  window.currentProject = name;
 
-  // 3) Clear current UI so user sees a blank project immediately
-  if (window.gantt && typeof gantt.clearAll === "function") {
-    gantt.clearAll();
-  }
+  // ✅ Refresh and THEN explicitly select the new project
+await refreshProjects(name);
+if (sel) sel.value = name;
+if (inp) inp.value = name;
+window.currentProject = name;
+
+  // ✅ Clear current UI so user sees blank project
+  if (window.gantt && typeof gantt.clearAll === "function") gantt.clearAll();
   const notesEl = document.getElementById("notes");
   if (notesEl) notesEl.value = "";
 
-  // optional: clear any local buffers you use
   try {
     localStorage.removeItem("gantt_unsaved");
     localStorage.removeItem("last_open_project");
   } catch {}
 
-  // 4) Do NOT reload previous data; either skip or load the new (empty) doc
-  // If your loader accepts project name, prefer calling that:
+  // ✅ Load the just-created (empty) doc
   if (typeof loadGanttFromFirestore === "function") {
-    // Load the just-created (empty) project so downstream state aligns
-    await loadGanttFromFirestore(uid, name); // if your function supports (uid, project)
+    try { await loadGanttFromFirestore(uid, name); }
+    catch { await loadGanttFromFirestore(uid); }
   }
 
-  // 5) (Optional) Immediately persist the blank baseline through your saver
+  // ✅ Persist the baseline so autosave has a starting point
   if (typeof window.saveToFirebase === "function") {
     await window.saveToFirebase({ uid, project: name });
   }
+
+  console.log(`[FB] ➕ Created and switched to project "${name}"`);
 }
+
 
 async function saveToFirebase(payload = {}) {
-  const uid = payload.uid || currentUID;
-  const project = payload.project || (window.currentProject || projectSelect.value);
-  if (!uid || !project) throw new Error('Missing uid/project');
+  try {
+    const uid = payload.uid || currentUID;
+    const project = payload.project || window.currentProject;
+    if (!uid || !project) throw new Error("Missing uid/project");
 
-  const ref = db.collection('users').doc(uid)
-                .collection('projects').doc(project);
+    const ref = db.collection("users").doc(uid)
+                  .collection("projects").doc(project);
 
-  // collect the CURRENT blank/edited state from UI
-  const tasks = window.gantt ? gantt.serialize().data || [] : [];
-  const links = window.gantt ? gantt.serialize().links || [] : [];
-  const notesEl = document.getElementById('notes');
+    const tasks = window.gantt ? gantt.serialize().data || [] : [];
+    const links = window.gantt ? gantt.serialize().links || [] : [];
+    const notesEl = document.getElementById("notes");
 
-  await ref.set({
-    gantt: { tasks, links },
-    notes: notesEl ? notesEl.value : '',
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
+    await ref.set({
+      gantt: { tasks, links },
+      notes: notesEl ? notesEl.value : "",
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    // ✅ Confirmation
+    alert(`✅ Project "${project}" saved to cloud!`);
+
+    console.log(`[FB] ✅ Saved project at: ${ref.path}`);
+    console.log(`[FB] ✅ Project "${project}" with ${tasks.length} tasks, ${links.length} links`);
+
+  } catch (err) {
+    console.error("[FB] ❌ Save failed:", err);
+    alert("❌ Save failed! Check console for details.");
+  }
 }
+
+
 
 
   // 🔴 NEW: delete project
-  async function deleteProject() {
-    const name = sel.value?.trim();
-    if (!name) { alert("Select a project first."); return; }
+async function deleteProject() {
+  const name = getSelectedProjectNameStrict();
+  if (!name) { alert("Select a project first."); return; }
 
-    const ok = confirm(`Delete project "${name}"? This cannot be undone.`);
-    if (!ok) return;
+  const ok = confirm(`Delete project "${name}"? This cannot be undone.`);
+  if (!ok) return;
 
+  try {
     const ref = db.collection("users").doc(uid).collection("projects").doc(name);
-    try {
-      await ref.delete();
-      // refresh list
-      await refreshProjects(false);
-      // pick next project or recreate Untitled if none left
-      let next = sel.value;
-      if (!next) {
-        next = "Untitled Project";
-        await db.collection("users").doc(uid).collection("projects")
-          .doc(next)
-          .set({ projectName: next, updatedAt: new Date(), data: [] }, { merge: true });
-        await refreshProjects(false);
-        sel.value = next;
-      }
-      if (inp) inp.value = sel.value || next;
+    await ref.delete();
 
-      // load the newly selected project (or empty)
-      if (typeof loadGanttFromFirestore === "function") loadGanttFromFirestore(uid);
-      // optional: clear chart if you prefer a blank screen when nothing selected
-      // gantt.clearAll(); gantt.render();
+    // Always create a new Untitled Project
+    const untitled = "Untitled Project";
+    const newRef = db.collection("users").doc(uid).collection("projects").doc(untitled);
+    await newRef.set({
+      projectName: untitled,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      data: []
+    }, { merge: false });
 
-      // make sure future edits save to the new selection
-      window.saveToFirebase && window.saveToFirebase();
-      console.log(`[FB] 🗑️ Deleted project "${name}"`);
-    } catch(e) {
-      console.error("[FB] ❌ Delete failed:", e);
-      alert("Failed to delete project. Check console for details.");
+    // Refresh project dropdown
+    const snap = await db.collection("users").doc(uid).collection("projects").get();
+    const names = snap.docs.map(d=>d.id).filter(n=>!!n && n!=="debug").sort((a,b)=>a.localeCompare(b));
+
+    const sel = document.getElementById('projectSelect');
+    if (sel) {
+      sel.innerHTML = "";
+      names.forEach(n=>{
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = n;
+        sel.appendChild(opt);
+      });
+      sel.value = untitled;
     }
+
+    const inp = document.getElementById('projectName');
+    if (inp) inp.value = untitled;
+
+    // Reset UI
+    if (window.gantt && typeof gantt.clearAll === "function") gantt.clearAll();
+    if (typeof loadGanttFromFirestore === "function") {
+      try { await loadGanttFromFirestore(uid, untitled); }
+      catch { await loadGanttFromFirestore(uid); }
+    }
+
+    console.log(`[FB] 🗑️ Deleted project "${name}", created new "${untitled}"`);
+  } catch (e) {
+    console.error("[FB] ❌ Delete failed:", e);
+    alert(`Failed to delete project. ${e?.message || "See console"}`);
   }
+}
 
   // events
   addBtn?.addEventListener("click", addProject);
@@ -3685,9 +3875,191 @@ document.getElementById("clearAllBtn")?.addEventListener("click", async (ev) => 
 })();
 
 
+// --- Project helpers ---
+function getSelectedProjectNameStrict() {
+  const sel = document.getElementById('projectSelect');
+  if (sel && sel.value && sel.value.trim()) return sel.value.trim();
+  const inp = document.getElementById('projectName');
+  if (inp && inp.value && inp.value.trim()) return inp.value.trim();
+  return 'Untitled Project';
+}
+
+function setCurrentProjectName(name) {
+  const sel = document.getElementById('projectSelect');
+  const inp = document.getElementById('projectName');
+  if (sel) sel.value = name;
+  if (inp) inp.value = name;
+  window.currentProject = name;
+}
+
+// --- Autosave guard to stop accidental wipes during delete/clear/load ---
+window._suspendAutosave = false;
+async function withAutosaveSuspended(task) {
+  const prev = window._suspendAutosave;
+  window._suspendAutosave = true;
+  try { return await task(); }
+  finally { window._suspendAutosave = prev; }
+}
+
+document.getElementById("deleteAllProjectsBtn")?.addEventListener("click", async () => {
+  const user = firebase.auth().currentUser;
+  if (!user) { alert("You’re not signed in."); return; }
+
+  if (!confirm("⚠️ Delete ALL projects? This cannot be undone.")) return;
+
+  await withAutosaveSuspended(async () => {
+    try {
+      const projectsRef = db.collection("users").doc(user.uid).collection("projects");
+
+      // 1) Delete every project doc
+      const snap = await projectsRef.get();
+      if (!snap.empty) {
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      // 2) Create fresh Untitled Project
+      const untitled = "Untitled Project";
+      await projectsRef.doc(untitled).set({
+        projectName: untitled,
+        updatedAt: new Date(),
+        data: []
+      }, { merge: false });
+
+      // 3) Rebuild dropdown manually (instead of refreshProjects)
+      const sel = document.getElementById("projectSelect");
+      if (sel) {
+        sel.innerHTML = "";
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = untitled;
+        sel.appendChild(opt);
+        sel.value = untitled;
+      }
+      setCurrentProjectName(untitled);
+
+      // 4) Clear chart + load Untitled
+      if (window.gantt && gantt.clearAll) gantt.clearAll();
+      if (typeof loadGanttFromFirestore === "function") {
+        try { await loadGanttFromFirestore(user.uid, untitled); }
+        catch { await loadGanttFromFirestore(user.uid); }
+      }
+
+      console.log("[FB] ✅ Deleted ALL projects, created Untitled Project");
+      alert("✅ All projects deleted. Started fresh with Untitled Project.");
+    } catch (e) {
+      console.error("[FB] ❌ Delete All Projects failed:", {
+        name: e?.name,
+        code: e?.code,
+        message: e?.message,
+        stack: e?.stack,
+        raw: e
+      });
+      alert(`Delete All Projects failed: ${e?.message || "See console"}`);
+    }
+  });
+});
+
+
+(function wireDeleteAllProjects(){
+  const btn = document.getElementById("deleteAllProjectsBtn");
+  if (!btn) return;
+
+  // 🛑 Remove any previously attached handlers
+  btn.replaceWith(btn.cloneNode(true));
+  const newBtn = document.getElementById("deleteAllProjectsBtn");
+
+  newBtn.addEventListener("click", async () => {
+    const user = firebase.auth().currentUser;
+    if (!user) { alert("You’re not signed in."); return; }
+
+    if (!confirm("⚠️ Delete ALL projects? This cannot be undone.")) return;
+
+    await withAutosaveSuspended(async () => {
+      try {
+        const projectsRef = db.collection("users").doc(user.uid).collection("projects");
+
+        // 1) Delete all project docs
+        const snap = await projectsRef.get();
+        if (!snap.empty) {
+          const batch = db.batch();
+          snap.docs.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        }
+
+        // 2) Create Untitled Project
+        const untitled = "Untitled Project";
+        await projectsRef.doc(untitled).set({
+          projectName: untitled,
+          updatedAt: new Date(),
+          data: []
+        }, { merge: false });
+
+        // 3) Rebuild dropdown manually
+        const sel = document.getElementById("projectSelect");
+        if (sel) {
+          sel.innerHTML = "";
+          const opt = document.createElement("option");
+          opt.value = opt.textContent = untitled;
+          sel.appendChild(opt);
+          sel.value = untitled;
+        }
+        setCurrentProjectName(untitled);
+
+        // 4) Reset UI and load Untitled
+        if (window.gantt && gantt.clearAll) gantt.clearAll();
+        if (typeof loadGanttFromFirestore === "function") {
+          try { await loadGanttFromFirestore(user.uid, untitled); }
+          catch { await loadGanttFromFirestore(user.uid); }
+        }
+
+        console.log("[FB] ✅ Deleted ALL projects, created Untitled Project");
+        alert("✅ All projects deleted. Started fresh with Untitled Project.");
+      } catch (e) {
+        console.error("[FB] ❌ Delete All Projects failed:", e);
+        alert(`Delete All Projects failed: ${e?.message || "See console"}`);
+      }
+    });
+  });
+})();
+
+function showToast(message, duration = 2000) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  toast.style.opacity = "1";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => {
+      toast.style.display = "none";
+    }, 500);
+  }, duration);
+}
+
+
+
+
+
 /* Keep overlay synced */
 gantt.attachEvent("onGanttReady", renderSingleLineOverlay);
 gantt.attachEvent("onTaskDblClick", function(id,e){ openModal(gantt.getTask(id)); return false; });
 </script>
+
+<div id="toast" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: black;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 9999;
+"></div>
+
 </body>
 </html>
